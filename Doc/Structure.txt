@@ -1,0 +1,38 @@
+robotic-chess/
+|
+├── core/                # Interfaces and base classes (abstract definitions)
+│   ├── __init__.py
+│   ├── interfaces.py    # Core interfaces (e.g., IGameEngine, ICamera)
+│   └── enums.py         # Constants (e.g., GameMode, Color)
+|
+├── api/                 # External API integrations (Lichess, Stockfish)
+│   ├── __init__.py
+│   ├── lichess_api.py   # Lichess API implementation
+│   └── stockfish_api.py # Stockfish API implementation
+|
+├── hardware/            # Hardware components (camera, robotic arm)
+│   ├── __init__.py
+│   ├── camera.py        # Camera implementation
+│   └── robotic_arm.py   # Robotic arm implementation
+|
+├── engine/              # Game logic (backend)
+│   ├── __init__.py
+│   ├── game_engine.py   # Core game logic
+│   └── move_validator.py# Move verification
+|
+├── frontend/            # Website and user interface
+│   ├── __init__.py
+│   ├── web_app.py       # Flask/Django app for the website
+│   └── templates/       # HTML/CSS templates
+|
+├── utils/               # Helper functions
+│   ├── __init__.py
+│   └── serial_comm.py   # Serial communication utilities
+|
+├── tests/               # Test files
+│   ├── test_game_engine.py
+│   └── ...
+|
+├── main.py              # Entry point for the application
+|
+└── requirements.txt     # Dependencies

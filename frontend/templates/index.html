@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotic Chess Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Robotic Chess Player</h1>
+    <form id="gameConfigForm">
+        <div class="form-group">
+            <label for="mode">Game Mode:</label>
+            <select id="mode" name="mode">
+                <option value="human_vs_bot">Human vs Bot</option>
+                <option value="bot_vs_bot">Bot vs Bot</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="color">Player Color (Human vs Bot only):</label>
+            <select id="color" name="color">
+                <option value="white">White</option>
+                <option value="black">Black</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="difficulty">Difficulty Level (1-20):</label>
+            <input type="number" id="difficulty" name="difficulty" min="1" max="20" value="10">
+        </div>
+
+        <button type="button" onclick="startGame()">Start Game</button>
+    </form>
+
+    <div id="gameStatus"></div>
+
+    <script>
+        function startGame() {
+            const mode = document.getElementById('mode').value;
+            const color = document.getElementById('color').value;
+            const difficulty = document.getElementById('difficulty').value;
+
+            fetch('/start_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    mode: mode,
+                    color: color,
+                    difficulty: parseInt(difficulty)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    document.getElementById('gameStatus').innerHTML = "Game started!";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while starting the game.');
+            });
+        }
+    </script>
+</body>
+</html>
