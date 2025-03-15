@@ -11,9 +11,13 @@ class StockfishEngine(IStockfishEngine):
         Initialize the StockfishEngine with the path to the Stockfish executable.
         """
         load_dotenv()
-        STOCKFISH_PATH = os.getenv("STOCKFISH_PATH")
-        if not STOCKFISH_PATH:
-            raise EnvironmentError("STOCKFISH_PATH not found in environment variables.")
+        
+        if os.name == 'nt':  # Windows
+            STOCKFISH_PATH = os.getenv("STOCKFISH_PATH")
+            if not STOCKFISH_PATH:
+                raise EnvironmentError("STOCKFISH_PATH not found in environment variables.")
+        else:  # Linux or other OS
+            STOCKFISH_PATH = "/usr/games/stockfish" # To install : sudo apt-get install stockfish
         
         self.stockfish = Stockfish(STOCKFISH_PATH)
         self.initialized = False

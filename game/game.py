@@ -3,8 +3,8 @@ from core.enums import GameMode, Color
 class Game:
     default_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     default_difficulty = 10
-    default_mode = GameMode.HUMAN_VS_BOT
-    default_color = Color.WHITE
+    default_mode = GameMode.HUMAN_VS_BOT.value
+    default_color = Color.WHITE.value
 
     def __init__(self):
         self.engine = None
@@ -14,6 +14,7 @@ class Game:
         self.fen = None
 
     def initialize_game(self, engine, mode: GameMode = default_mode, color: Color = default_color, difficulty: int = default_difficulty, fen: str = default_fen):
+        print("Initializing game... mode:", mode, "color:", color, "difficulty:", difficulty)
         self.engine = engine
         self.mode = mode
         self.color = color
@@ -27,19 +28,20 @@ class Game:
         return self.fen
 
     def start_game(self):
-        if self.mode == GameMode.HUMAN_VS_BOT:
+        print("Starting game...", "mode:", self.mode, "color:", self.color, "difficulty:", self.difficulty)
+        if self.mode == GameMode.HUMAN_VS_BOT.value:
             self.start_human_vs_bot_game()
-        elif self.mode == GameMode.BOT_VS_BOT:
+        elif self.mode == GameMode.BOT_VS_BOT.value:
             self.start_bot_vs_bot_game()
         else:
             raise ValueError("Invalid game mode")
 
     def start_human_vs_bot_game(self):
-        if self.color == Color.WHITE:
+        if self.color == Color.WHITE.value:
             while not self.is_game_over():
                 self.engine.handle_human_move()
                 self.engine.handle_bot_move()
-        elif self.color == Color.BLACK:
+        elif self.color == Color.BLACK.value:
             while not self.is_game_over():
                 self.engine.handle_bot_move()
                 self.engine.handle_human_move()

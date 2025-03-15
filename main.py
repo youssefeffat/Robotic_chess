@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 import os
 import threading
 
+# Installation à faire : 
+#     pip install flask
+#     pip install dotenv
+#     sudo apt-get install stockfish
 # Load environment variables from .env file
 load_dotenv()
 

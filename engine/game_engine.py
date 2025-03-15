@@ -34,6 +34,7 @@ class GameEngine(IGameEngine):
         self.button = Button()  
 
     def initialize_game(self, mode: GameMode, color: Color, difficulty: int):
+        print("Initializing game engine... mode:", mode, "color:", color, "difficulty:", difficulty)
         self.stockfish.initialize_engine(difficulty)
         self.camera.initialize_camera()
         self.robot.initialize_robot()

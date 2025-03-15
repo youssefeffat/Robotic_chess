@@ -7,3 +7,6 @@ class GameMode(Enum):
 class Color(Enum):
     WHITE = "white"
     BLACK = "black"
+    
+# print(GameMode.HUMAN_VS_BOT)
+# print(GameMode.HUMAN_VS_BOT.value)
