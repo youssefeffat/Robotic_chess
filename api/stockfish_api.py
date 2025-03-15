@@ -1,10 +1,10 @@
 from stockfish import Stockfish  # Import the Stockfish engine
-from core.interfaces import IStockfishEngine
+# from core.interfaces import IStockfishEngine
 from typing import Optional
 import os
 from dotenv import load_dotenv
 
-class StockfishEngine(IStockfishEngine):
+class StockfishEngine():
     
     def __init__(self):
         """
@@ -64,3 +64,18 @@ class StockfishEngine(IStockfishEngine):
 
         return False  # Game is not over
     
+if __name__ == "__main__":
+    engine = StockfishEngine()
+    engine.initialize_engine(difficulty=5)
+    
+    # Initial board state
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    print("Initial board state:")
+    print(engine.stockfish.get_board_visual(fen))
+    
+    # Make a move and display the board
+    best_move = engine.calculate_best_move(fen)
+    print(f"Best move: {best_move}")
+    engine.stockfish.make_moves_from_current_position([best_move])
+    print("Board state after best move:")
+    print(engine.stockfish.get_board_visual())

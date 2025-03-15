@@ -63,3 +63,8 @@ class Game:
     def close_game(self):
         # Example implementation (replace with actual logic)
         pass
+    
+if __name__ == "__main__":
+    game = Game()
+    game.initialize_game()
+    game.start_game()
