@@ -1,6 +1,6 @@
-
+# Ensure the parent directory of 'core' is in the PYTHONPATH
 from core.interfaces import IRoboticArmModule #Si ça ne marche pas, il faut changer le chemin, par exemple
-#export PYTHONPATH=/home/anas/Documents/Python/Robotic_chess:$PYTHONPATH 
+# export PYTHONPATH=/home/anas/Documents/Python/Robotic_chess:$PYTHONPATH 
 
 import threading  # Import the threading module
 from serial_communication import *
@@ -179,13 +179,13 @@ class RoboticArm(IRoboticArmModule):
         while self.running:
             self._rxManage()
             
-            # self.chessBoardMoveManager()
+            self.chessBoardMoveManager()
             
             #On actualise la position courante toutes les secondes
             if time.time() - last_time_pos > 1:
                 last_time_pos = time.time()
                 # Send a request for the current position
-                # self.com.sendEmpty(ID_SERVO_GRAB)
+                # self.com.sendEmpty(ID_SEND_CURRENT_POSITION)
                 
         print("Exiting loop... self.running = ", self.running)
 
@@ -199,7 +199,18 @@ if __name__ == "__main__":
     # Shutdown the robotic arm
     # robotic_arm.shutdown()
     while 1:
-        key = input("Press a key: ")
+        key = input("")
         if key == 'a':
             print("Key 'a' pressed")
+            robotic_arm.execute_move("e2e4")
+        elif key == 'b':
+            print("Key 'a' pressed")
+            robotic_arm.execute_move("e4a1")
+        elif key == 'c':
+            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("e2e4")
+            print(f"Move from {start_pos} to {end_pos}")
+            
+            robotic_arm.com.sendMove(start_pos)
+        elif key == 'p':
+            print("Key 'p' pressed")
             robotic_arm.com.sendEmpty(ID_SEND_CURRENT_POSITION)

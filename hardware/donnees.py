@@ -65,7 +65,7 @@ class Message():
         return struct.pack(packet_format, 0xFF, self.id, self.len, packet_data, self.checksum, 0xFF)
 
     def __str__(self):
-        return f"[FF][{self.id:02X}][{self.len:02X}][{''.join(f'{byte:02X}' for byte in self.data)}][{self.checksum:02X}][FF]"
+        return f"[FF][{self.id:02X}][{self.len:02X}]{''.join(f'[{byte:02X}]' for byte in self.data)}[{self.checksum:02X}][FF]"
 
 SIZE_FIFO = 32 #Une FIFO est un buffer, la taille du buffer de reception est de 32
 
@@ -77,10 +77,6 @@ class Position():
     
     def __str__(self):
         return f"Position(x: {self.x}, y: {self.y}, z: {self.z})"
-
-
-
-
 
 TAILLE_CARREAU = 0.05 #En metres
 HAUTEUR_BRAS = -0.1 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
