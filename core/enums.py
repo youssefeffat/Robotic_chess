@@ -7,3 +7,8 @@ class GameMode(Enum):
 class Color(Enum):
     WHITE = "white"
     BLACK = "black"
+
+class LichessParams(Enum):
+    BOT1_USERNAME = "bot_polytech"
+    BOT2_USERNAME = "youssefeffat"
+    CLOCK_LIMIT = 600

@@ -112,24 +112,9 @@ class IUserInterface(ABC):
         pass
 
     @abstractmethod
-    def get_seesion_url(self) -> str:
-        """Get the URL of the current game session / blocked function if the url is not ready"""
-        pass
-
-    @abstractmethod
-    def get_game_clock_state(self) -> str:
-        """Get the current game state {
-            "clock": {
-                "white": 300,
-                "black": 300
-        }"""
-        pass
-
-    @abstractmethod
     def is_game_over(self) -> bool:
         """Check if the game is over. True/False"""
         pass
-
 
     @abstractmethod
     def shutdown(self) -> None:
