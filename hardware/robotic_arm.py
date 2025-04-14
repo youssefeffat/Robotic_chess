@@ -6,7 +6,7 @@ import threading  # Import the threading module
 from serial_communication import *
 
 class RoboticArm(IRoboticArmModule):
-    def __init__(self, selected_port = "COM5"):
+    def __init__(self):
         """
         Initialize the RoboticArm class.
         This is a placeholder implementation.
@@ -14,7 +14,6 @@ class RoboticArm(IRoboticArmModule):
         """
         self.is_initialized = False 
 
-        self.selected_port = selected_port
         self.com = SerialCommunication()
 
         self.loop_thread = None  # Thread for the loop function
@@ -59,7 +58,7 @@ class RoboticArm(IRoboticArmModule):
         Initialize the robotic arm module.
         This function sets up the robotic arm hardware (e.g., motors, servos).
         """
-        self._start_serial(self.selected_port) # Start the serial communication
+        self._start_serial(afficherPortDisponible()) # Start the serial communication
         print("Robotic arm initialized.")
         self._start_loop()  # Start the loop thread
         self.is_initialized = True
@@ -124,7 +123,7 @@ class RoboticArm(IRoboticArmModule):
                 self.current_pos.x = float(self.com.rxMsg[self.com.FIFO_lecture].data[0] + (self.com.rxMsg[self.com.FIFO_lecture].data[1] << 8)) / 1000.0
                 self.current_pos.y = float(self.com.rxMsg[self.com.FIFO_lecture].data[2] + (self.com.rxMsg[self.com.FIFO_lecture].data[3] << 8)) / 1000.0
                 self.current_pos.z = float(self.com.rxMsg[self.com.FIFO_lecture].data[4] + (self.com.rxMsg[self.com.FIFO_lecture].data[5] << 8)) / 1000.0
-                print(self.current_pos)
+                print(f"{self.current_pos} : {self.chessboard_moves.convertPosToChessNotation(self.current_pos)}")
             case id if id == ID_CMD_BOUTTON_STATE:
                 print("Button state command received")
             case _:
@@ -147,24 +146,25 @@ class RoboticArm(IRoboticArmModule):
             start_pos, end_pos = self.chessboard_moves.convertMovesToPositions(moves)
             print(f"Move from {start_pos} to {end_pos}")
             
+            start_pos.z = HAUTEUR_BRAS
             self.com.sendMove(start_pos)#On va au dessus de la piece
             
-            start_pos.z = HAUTEUR_BRAS
+            start_pos.z = 0
             self.com.sendMove(start_pos)#On descend à la piece
             
             self.com.sendGrabPiece(True)#On attrape la piece
             
-            start_pos.z = 0
+            start_pos.z = HAUTEUR_BRAS
             self.com.sendMove(start_pos)#On remonte
             
             self.com.sendMove(end_pos)#On va à la case
             
-            end_pos.z = HAUTEUR_BRAS
+            end_pos.z = 0
             self.com.sendMove(end_pos)#On descend à la case
             
             self.com.sendGrabPiece(False)#On relache la piece
             
-            end_pos.z = 0
+            end_pos.z = HAUTEUR_BRAS
             self.com.sendMove(end_pos)#On remonte
             
             #Est ce qu'on fait autre chose aprés? Comme aller appuyer sur un bouton? A voir !!!!!!!!!!!!!!!!!!!!
@@ -190,7 +190,7 @@ class RoboticArm(IRoboticArmModule):
         print("Exiting loop... self.running = ", self.running)
 
 if __name__ == "__main__":    
-    robotic_arm = RoboticArm(afficherPortDisponible())
+    robotic_arm = RoboticArm()
     # robotic_arm.chessboard_moves.addMoves("a1b2")
     robotic_arm.initialize_robot()
     # Simulate some operations
@@ -202,15 +202,26 @@ if __name__ == "__main__":
         key = input("")
         if key == 'a':
             print("Key 'a' pressed")
-            robotic_arm.execute_move("e2e4")
+            robotic_arm.execute_move("a1f6")
         elif key == 'b':
             print("Key 'a' pressed")
-            robotic_arm.execute_move("e4a1")
+            robotic_arm.execute_move("f6b1")
         elif key == 'c':
-            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("e2e4")
+            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("a1h8")
             print(f"Move from {start_pos} to {end_pos}")
-            
             robotic_arm.com.sendMove(start_pos)
+            robotic_arm.com.sendMove(end_pos)
+        elif key == 'd':
+            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("h8a1")
+            print(f"Move from {start_pos} to {end_pos}")
+            robotic_arm.com.sendMove(start_pos)
+            robotic_arm.com.sendMove(end_pos)
+        elif key == 'h':
+            home = Position(0,0,0)
+            robotic_arm.com.sendMove(home)
         elif key == 'p':
             print("Key 'p' pressed")
             robotic_arm.com.sendEmpty(ID_SEND_CURRENT_POSITION)
+        elif key == 't':
+            print("Key 'q' pressed")
+            robotic_arm.com.sendMove(Position(10,10,0))#Test pour lui demander d'aller en dehors de l'echiquier, normalement il ne devrait pas le faire

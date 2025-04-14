@@ -78,8 +78,8 @@ class Position():
     def __str__(self):
         return f"Position(x: {self.x}, y: {self.y}, z: {self.z})"
 
-TAILLE_CARREAU = 0.05 #En metres
-HAUTEUR_BRAS = -0.1 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+TAILLE_CARREAU = 0.036 #En metres
+HAUTEUR_BRAS = 0.1 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 class ChessboardMoves():
     def __init__(self):
@@ -87,18 +87,18 @@ class ChessboardMoves():
         self.cursor_move_write = 0
         self.cursor_move_read = 0
         
-        self.posA1 = Position(0, 0, 0) #Position de A1, utilisé comme référence, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+        self.posA1 = Position(TAILLE_CARREAU, TAILLE_CARREAU, 0) #Position de A1, utilisé comme référence, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     def addMoves(self, move):
         self.moves[self.cursor_move_write] = move
         self.cursor_move_write = (self.cursor_move_write + 1) % SIZE_FIFO
-    
+
     def thereIsNewMoveToDo(self):
         if (self.cursor_move_write - self.cursor_move_read):
             return True
         else:
             return False
-    
+
     def getNextMove(self):
         if(self.thereIsNewMoveToDo() == False):
             return ""
@@ -125,10 +125,10 @@ class ChessboardMoves():
         end_pos = chessNotationToPosition(move[2:])
         return start_pos, end_pos
 
-    def convertPositionToChessNotation(self, position: Position):
+    def convertPosToChessNotation(self, position: Position):
         # Convert the position to chess notation
-        column = chr(int((position.x - self.posA1.x) / TAILLE_CARREAU) + ord('a'))
-        row = str(int((position.y - self.posA1.y) / TAILLE_CARREAU) + 1)
+        column = chr(int((position.x - self.posA1.x + 0.01) / TAILLE_CARREAU) + ord('a'))
+        row = str(int((position.y - self.posA1.y + 0.01) / TAILLE_CARREAU) + 1)
         return f"{column}{row}"
 
 if __name__ == "__main__":
