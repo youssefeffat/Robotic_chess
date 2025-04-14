@@ -22,7 +22,8 @@ ID_ACK_HOMING                  = 0xA7 # On réçoit l'accusé de réception
 ID_SEND_CURRENT_POSITION       = 0xA8 # On demande d'envoyer la position courante
 ID_ACK_SEND_CURRENT_POSITION   = 0xA9 # On reçoit la position courante
 
-ID_CMD_BOUTTON_STATE = 0xB1  # Request button state
+ID_CMD_BOUTTON_STATE           = 0xB1  # Request button state
+ID_ACK_CMD_BOUTTON_STATE       = 0xB2 # On reçoit l'accusé de réception de l'état du bouton
 
 idComEnText = {
     0x00: "",

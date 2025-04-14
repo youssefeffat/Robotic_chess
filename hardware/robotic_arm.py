@@ -24,6 +24,8 @@ class RoboticArm(IRoboticArmModule):
         self.chessboard_moves = ChessboardMoves()
         self.state_chessboard_manager = 0
         self.last_move = "" #le dernier move fait par exemple "e2e4"
+        
+        self.button_state = False #On va l'utiliser pour savoir si le bouton est appuyé ou pas, si 1 c'est qu'il est appuyé, sinon c'est 0
 
     def _start_serial(self, selected_port):
         if selected_port:
@@ -81,8 +83,9 @@ class RoboticArm(IRoboticArmModule):
                 self.current_pos.y = float(self.com.rxMsg[self.com.FIFO_lecture].data[2] + (self.com.rxMsg[self.com.FIFO_lecture].data[3] << 8)) / 1000.0
                 self.current_pos.z = float(self.com.rxMsg[self.com.FIFO_lecture].data[4] + (self.com.rxMsg[self.com.FIFO_lecture].data[5] << 8)) / 1000.0
                 print(f"{self.current_pos} : {self.chessboard_moves.convertPosToChessNotation(self.current_pos)}")
-            case id if id == ID_CMD_BOUTTON_STATE:
+            case id if id == ID_ACK_CMD_BOUTTON_STATE:
                 print("Button state command received")
+                self.button_state = bool(self.com.rxMsg[self.com.FIFO_lecture].data[0])
             case _:
                 print(f"Received message from an unknown ID")
         self.com.FIFO_lecture = (self.com.FIFO_lecture + 1) % SIZE_FIFO
