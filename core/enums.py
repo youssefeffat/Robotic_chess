@@ -7,6 +7,8 @@ class GameMode(Enum):
 class Color(Enum):
     WHITE = "white"
     BLACK = "black"
-    
-# print(GameMode.HUMAN_VS_BOT)
-# print(GameMode.HUMAN_VS_BOT.value)
+
+class LichessParams(Enum):
+    BOT1_USERNAME = "bot_polytech"
+    BOT2_USERNAME = "youssefeffat"
+    CLOCK_LIMIT = 600
