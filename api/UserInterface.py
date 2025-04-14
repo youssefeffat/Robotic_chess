@@ -27,17 +27,50 @@ class UserInterface(IUserInterface):
         self.lichess.shutdown()
 
 
-class LichessAPI( IUserInterface):
+class LichessAPI(IUserInterface):
     BASE_URL = "https://lichess.org"
-    BOT1_USERNAME = os.getenv("LICHESS_BOT1_USERNAME")
-    BOT2_USERNAME = os.getenv("LICHESS_BOT2_USERNAME")
+    BOT1_USERNAME = os.getenv("LICHESS_BOT1_USERNAME", "bot_polytech")
+    BOT2_USERNAME = os.getenv("LICHESS_BOT2_USERNAME", "youssefeffat")
     CLOCK_LIMIT = 600
-    if not BOT1_USERNAME or not BOT2_USERNAME:
-        raise EnvironmentError("LICHESS_BOT1_USERNAME OR LICHESS_BOT2_USERNAME not found in environment variables.")
 
-    # Implement IUserInterface methods 
-    def __init__(self) -> None: 
-        return 
+    def __init__(self) -> None:
+        if not self.BOT1_USERNAME or not self.BOT2_USERNAME:
+            raise EnvironmentError("LICHESS_BOT1_USERNAME OR LICHESS_BOT2_USERNAME not found in environment variables.")
+        self.headers = {
+            "Authorization": f"Bearer {os.getenv('LICHESS_API_TOKEN_BOT1')}",
+            "Accept": "application/x-ndjson"
+        }
+
+    def create_game(self) -> str:
+        """
+        Create a game on Lichess and return the game URL.
+        """
+        # Placeholder implementation
+        return f"{self.BASE_URL}/game/{self.BOT1_USERNAME}_vs_{self.BOT2_USERNAME}"
+
+    def make_move(self, uci_move: str) -> None:
+        """
+        Submit a move to Lichess for the bot's turn.
+        """
+        # Placeholder implementation
+        print(f"Move {uci_move} submitted.")
+    
+    def apply_move(self, move: str) -> None:
+        """Apply the given move to the game session."""
+        pass
+
+    def is_game_over(self, game_id: str) -> bool:
+        """
+        Check if the game is over.
+        """
+        # Placeholder implementation
+        return False
+
+    def shutdown(self) -> None:
+        """
+        Clean up resources (e.g., close connections).
+        """
+        print("Lichess API session closed.")
     
     def create_game(self) -> str:
         """

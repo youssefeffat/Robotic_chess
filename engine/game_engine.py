@@ -1,5 +1,5 @@
 from core.interfaces import IGameEngine
-from Robotic_chess.api.UserInterface import UserInterface
+from api.UserInterface import UserInterface
 from api.stockfish_api import StockfishEngine
 from hardware.camera import Camera
 from hardware.robotic_arm import RoboticArm

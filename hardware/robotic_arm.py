@@ -3,7 +3,7 @@ from core.interfaces import IRoboticArmModule #Si ça ne marche pas, il faut cha
 # export PYTHONPATH=/home/anas/Documents/Python/Robotic_chess:$PYTHONPATH 
 
 import threading  # Import the threading module
-from serial_communication import *
+from hardware.serial_communication import *
 
 class RoboticArm(IRoboticArmModule):
     def __init__(self):
@@ -41,7 +41,7 @@ class RoboticArm(IRoboticArmModule):
         if self.loop_thread is None or not self.loop_thread.is_alive():
             self.running = True
             print("Loop thread started.")
-            self.loop_thread = threading.Thread(target=self.loop, daemon=True)
+            self.loop_thread = threading.Thread(target=self._loop, daemon=True)
             self.loop_thread.start()
             
     def _stop_loop(self):
@@ -52,54 +52,11 @@ class RoboticArm(IRoboticArmModule):
         if self.loop_thread is not None:
             self.loop_thread.join()
             print("Loop thread stopped.")
-            
-    def initialize_robot(self) -> None:
-        """
-        Initialize the robotic arm module.
-        This function sets up the robotic arm hardware (e.g., motors, servos).
-        """
-        self._start_serial(afficherPortDisponible()) # Start the serial communication
-        print("Robotic arm initialized.")
-        self._start_loop()  # Start the loop thread
-        self.is_initialized = True
-
-    def execute_move(self, move: str) -> None:
-        """
-        Execute the given move on the physical chessboard.
-        Expected Behavior:
-            - Move the robotic arm to perform the specified move.
-            - Ensure the move is executed accurately.
-
-        Inputs:
-            - `move`: A UCI move string (e.g., "e2e4").
-
-        Outputs:
-            - None (executes the move physically).
-        """
-        if not self.is_initialized:
-            raise RuntimeError("Robotic arm is not initialized. Call initialize_robot() first.")
-
-        self.chessboard_moves.addMoves(move)
-        
-        print(f"Executing move: {move}")
-
-    def shutdown(self) -> None:
-        """
-        Shut down the robotic arm and clean up resources.
-        """
-        self._stop_loop()  # Stop the loop thread
-        print("Robotic arm shut down.")
-        self.is_initialized = False
         
     def _rxManage(self):
         # print("RxManage")
-        self.com.FIFO_occupation = self.com.FIFO_Ecriture - self.com.FIFO_lecture
-        if(self.com.FIFO_occupation<0):
-            self.com.FIFO_occupation = self.com.FIFO_occupation + SIZE_FIFO
-        if(self.com.FIFO_max_occupation < self.com.FIFO_occupation):
-            self.com.FIFO_max_occupation = self.com.FIFO_occupation
-        if(self.com.FIFO_occupation == 0):
-            return
+        if(self.com.available() == False):
+            return 0
         
         id = self.com.rxMsg[self.com.FIFO_lecture].id
         print("\nReceived message from id: ", idComEnText.get(id, "ID inconnu"))
@@ -129,8 +86,19 @@ class RoboticArm(IRoboticArmModule):
             case _:
                 print(f"Received message from an unknown ID")
         self.com.FIFO_lecture = (self.com.FIFO_lecture + 1) % SIZE_FIFO
-    
-    def chessBoardMoveManager(self):
+        return id
+
+    def sendMoveAndWait(self, position: Position):
+        """
+        Send a move command to the robotic arm and wait for acknowledgment.
+        """
+        self.com.sendMove(position)
+        
+        while True :
+            if(self._rxManage() == ID_ACK_CMD_MOVE):
+                break
+                
+    def _chessBoardMoveManager(self):
         """
         Manage the moves on the chessboard.
         This function will handle the moves.
@@ -147,48 +115,98 @@ class RoboticArm(IRoboticArmModule):
             print(f"Move from {start_pos} to {end_pos}")
             
             start_pos.z = HAUTEUR_BRAS
-            self.com.sendMove(start_pos)#On va au dessus de la piece
+            self.sendMoveAndWait(start_pos)#On va au dessus de la piece
             
             start_pos.z = 0
-            self.com.sendMove(start_pos)#On descend à la piece
+            self.sendMoveAndWait(start_pos)#On descend à la piece
             
             self.com.sendGrabPiece(True)#On attrape la piece
             
             start_pos.z = HAUTEUR_BRAS
-            self.com.sendMove(start_pos)#On remonte
+            self.sendMoveAndWait(start_pos)#On remonte
             
-            self.com.sendMove(end_pos)#On va à la case
+            self.sendMoveAndWait(end_pos)#On va à la case
             
             end_pos.z = 0
-            self.com.sendMove(end_pos)#On descend à la case
+            self.sendMoveAndWait(end_pos)#On descend à la case
             
             self.com.sendGrabPiece(False)#On relache la piece
             
             end_pos.z = HAUTEUR_BRAS
-            self.com.sendMove(end_pos)#On remonte
+            self.sendMoveAndWait(end_pos)#On remonte
+            
+            self.chessboard_moves.move_finished = True#On dit qu'on a fini le move
             
             #Est ce qu'on fait autre chose aprés? Comme aller appuyer sur un bouton? A voir !!!!!!!!!!!!!!!!!!!!
     
-    def loop(self):
+    def _loop(self):
         """
-        Main loop for the robotic arm module.
-        This function is called in a thread to continuously check for incoming messages and process them.
+        Loop for the robotic arm module.
+        This function is called in a thread to continuously check for incoming messages and moves and process them.
         """
-        last_time_pos = 0
         print("Starting loop... self.running = ", self.running)
         while self.running:
             self._rxManage()
             
-            self.chessBoardMoveManager()
-            
-            #On actualise la position courante toutes les secondes
-            if time.time() - last_time_pos > 1:
-                last_time_pos = time.time()
-                # Send a request for the current position
-                # self.com.sendEmpty(ID_SEND_CURRENT_POSITION)
+            self._chessBoardMoveManager()
                 
         print("Exiting loop... self.running = ", self.running)
+    
+    def initialize_robot(self) -> None:
+        """
+        Initialize the robotic arm module.
+        This function sets up the robotic arm hardware (e.g., motors, servos).
+        """
+        self._start_serial(afficherPortDisponible()) # Start the serial communication
+        print("Robotic arm initialized.")
+        self._start_loop()  # Start the loop thread
+        self.is_initialized = True
 
+    def execute_move(self, move: str) -> None:
+        """
+        Execute the given move on the physical chessboard.
+        Expected Behavior:
+            - Move the robotic arm to perform the specified move.
+            - Ensure the move is executed accurately.
+
+        Inputs:
+            - `move`: A UCI move string (e.g., "e2e4").
+
+        Outputs:
+            - None (executes the move physically).
+        """
+        if not self.is_initialized:
+            raise RuntimeError("Robotic arm is not initialized. Call initialize_robot() first.")
+        print(f"Executing move: {move}")
+        self.chessboard_moves.addMoves(move)
+        self.chessboard_moves.waitForMoveToFinish() # Bloque jusqu'à ce que le move soit fini
+        print(f"Move {move} executed.")
+
+    def shutdown(self) -> None:
+        """
+        Shut down the robotic arm and clean up resources.
+        """
+        self._stop_loop()  # Stop the loop thread
+        print("Robotic arm shut down.")
+        self.is_initialized = False
+    
+    def get_current_position(self) -> str:
+        """
+        Get the current chessboard position of the robotic arm.
+        Expected Behavior:
+            - Return the current position of the robotic arm in chess notation.
+        Example:
+            - return "e2".
+        """
+        self.com.sendEmpty(ID_SEND_CURRENT_POSITION)
+        
+        return self.chessboard_moves.convertPosToChessNotation(self.current_pos)
+        
+    
+
+
+
+# test : 
 if __name__ == "__main__":    
     robotic_arm = RoboticArm()
     # robotic_arm.chessboard_moves.addMoves("a1b2")

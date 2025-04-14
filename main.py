@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, jsonify
-from Robotic_chess.api.UserInterface import UserInterface
+from api.UserInterface import UserInterface
 from engine.game_engine import GameEngine
 from dotenv import load_dotenv
 # import os
