@@ -39,6 +39,8 @@ idComEnText = {
     0xA9: "ID_ACK_SEND_CURRENT_POSITION",
     0xC0: "ID_ACK_GENERAL",
     0xD0: "ID_REPEAT_REQUEST",
+    0xB1: "ID_CMD_BOUTTON_STATE",
+    0xB2: "ID_ACK_CMD_BOUTTON_STATE",
 }
 
 class Message():
