@@ -117,6 +117,14 @@ class RoboticArm(IRoboticArmModule):
             start_pos, end_pos = self.chessboard_moves.convertMovesToPositions(moves)
             print(f"Move from {start_pos} to {end_pos}")
             
+            # self.com.sendEmpty(ID_SEND_CURRENT_POSITION)
+            # while True :
+            #     if(self._rxManage() == ID_ACK_SEND_CURRENT_POSITION):
+            #         break
+            # self.current_pos.z = HAUTEUR_BRAS
+            # self.sendMoveAndWait(self.current_pos)#On s'assure d'etre deja en l'air avant de bouger
+            
+            
             start_pos.z = HAUTEUR_BRAS
             self.sendMoveAndWait(start_pos)#On va au dessus de la piece
             
@@ -233,16 +241,22 @@ if __name__ == "__main__":
             robotic_arm.com.sendMove(start_pos)
             robotic_arm.com.sendMove(end_pos)
         elif key == 'd':
-            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("h8a1")
+            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("h8a8")
             print(f"Move from {start_pos} to {end_pos}")
             robotic_arm.com.sendMove(start_pos)
             robotic_arm.com.sendMove(end_pos)
+        elif key == 'e':
+            print("Key 'e' pressed")
+            robotic_arm.execute_move("a8h1")
+        elif key == 'f':
+            print("Key 'f' pressed")
+            robotic_arm.execute_move("h1a1")
         elif key == 'h':
-            home = Position(0,0,0)
+            home = Position(0,0,HAUTEUR_BRAS)
             robotic_arm.com.sendMove(home)
         elif key == 'p':
             print("Key 'p' pressed")
             robotic_arm.com.sendEmpty(ID_SEND_CURRENT_POSITION)
         elif key == 't':
-            print("Key 'q' pressed")
+            print("Key 't' pressed")
             robotic_arm.com.sendMove(Position(10,10,0))#Test pour lui demander d'aller en dehors de l'echiquier, normalement il ne devrait pas le faire

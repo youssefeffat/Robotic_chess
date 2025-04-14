@@ -80,7 +80,7 @@ class Position():
         return f"Position(x: {self.x}, y: {self.y}, z: {self.z})"
 
 TAILLE_CARREAU = 0.036 #En metres
-HAUTEUR_BRAS = 0.1 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+HAUTEUR_BRAS = 0.05 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 class ChessboardMoves():
     def __init__(self):
