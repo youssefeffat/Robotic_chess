@@ -3,7 +3,7 @@ from core.interfaces import IRoboticArmModule #Si ça ne marche pas, il faut cha
 # export PYTHONPATH=/home/anas/Documents/Python/Robotic_chess:$PYTHONPATH 
 
 import threading  # Import the threading module
-from serial_communication import *
+from hardware.serial_communication import *
 
 class RoboticArm(IRoboticArmModule):
     def __init__(self):

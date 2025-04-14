@@ -3,7 +3,7 @@ import serial
 import serial.tools.list_ports
 import time
 import struct
-from donnees import *
+from hardware.donnees import *
 
 
 class SerialCommunication(QThread):
