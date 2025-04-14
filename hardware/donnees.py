@@ -88,6 +88,8 @@ class ChessboardMoves():
         self.cursor_move_read = 0
         
         self.posA1 = Position(TAILLE_CARREAU, TAILLE_CARREAU, 0) #Position de A1, utilisé comme référence, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+        self.move_finished = False #On va l'utiliser pour savoir
 
     def addMoves(self, move):
         self.moves[self.cursor_move_write] = move
@@ -98,6 +100,11 @@ class ChessboardMoves():
             return True
         else:
             return False
+    
+    def waitForMoveToFinish(self):
+        while(self.move_finished == False):
+            pass
+        self.move_finished = False
 
     def getNextMove(self):
         if(self.thereIsNewMoveToDo() == False):
