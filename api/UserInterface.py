@@ -2,6 +2,12 @@ import os
 from dotenv import load_dotenv
 from core.interfaces import IUserInterface
 from core.enums import LichessParams
+import requests
+import time
+import chess
+import chess.pgn
+import io
+from IPython.display import display, SVG
 
 load_dotenv()  # Load environment variables from .env
 
@@ -11,8 +17,8 @@ class UserInterface(IUserInterface):
     def __init__(self):
         self.lichess = LichessAPI()
 
-    def create_game(self) -> str:
-        return self.lichess.create_game()
+    def create_game(self,fen) -> str:
+        return self.lichess.create_game(fen)
 
     def apply_move(self, move: str) -> None:
         self.lichess.make_move(move)
@@ -31,36 +37,137 @@ class LichessAPI( IUserInterface):
     BASE_URL = "https://lichess.org"
     BOT1_USERNAME = os.getenv("LICHESS_BOT1_USERNAME")
     BOT2_USERNAME = os.getenv("LICHESS_BOT2_USERNAME")
+    TOKEN_1 = os.getenv("LICHESS_API_TOKEN_BOT1")
+    TOKEN_2 = os.getenv("LICHESS_API_TOKEN_BOT2")
     CLOCK_LIMIT = 600
-    if not BOT1_USERNAME or not BOT2_USERNAME:
-        raise EnvironmentError("LICHESS_BOT1_USERNAME OR LICHESS_BOT2_USERNAME not found in environment variables.")
+    #if not BOT1_USERNAME or not BOT2_USERNAME:
+       # raise EnvironmentError("LICHESS_BOT1_USERNAME OR LICHESS_BOT2_USERNAME not found in environment variables.")
+    HEADERS_1 = {
+        "Authorization": f"Bearer {TOKEN_1}",
+        "Content-Type": "application/json"
+    }
 
+#ChessPlayer2Project
+    HEADERS_2 = {
+        "Authorization": f"Bearer {TOKEN_2}",
+        "Content-Type": "application/json"
+    }
     # Implement IUserInterface methods 
     def __init__(self) -> None: 
-        return 
+        self.game_id=None
+        self.fen=None
     
-    def create_game(self) -> str:
+    def create_game(self,fen) -> str:
         """
         Create a game on Lichess and return the game URL.
         :return: Game URL if successful / Exception if failed.
         """
-        return 
+        self.fen=fen
+        url = f"{self.BASE_URL}/api/challenge/{self.BOT2_USERNAME}"
+        data = {
+        "level": 3,
+        "clock.limit": 300,  
+        "clock.increment": 0,
+        "color": "black",  
+        "fen": fen,
+        "rated": False  
+        }
+        
+        response = requests.post(url, headers=self.HEADERS_1, json=data)
 
-    def make_move(self, uci_move: str) -> None:
+        if response.status_code == 200:
+            game_data = response.json()
+            self.game_id = game_data.get("id")  
+            if self.game_id:
+                print(f" Game Created! Game ID: {self.game_id}")
+                self.__accept_challenge(self.game_id)
+                return f"{self.BASE_URL}/{self.game_id}"
+            else:
+                print(f" Unexpected response: {game_data}")
+                return None
+        else:
+            print(f" Failed to create game: {response.text}")
+            return None
+
+
+    def apply_move(self, uci_move: str) -> None:
         """
         Submit a move to Lichess for the bot's turn.
         :param game_id: ID of the game.
         :param uci_move: UCI move string (e.g., "e2e4").
         """
+        current_fen=self.fen
+        url = f"{self.BASE_URL}/api/board/game/{self.game_id}/move/{uci_move}"
+        player=self.__get_player_turn_from_fen(current_fen)
+        if player=="b":
+            headers_player=self.HEADERS_1
+        else:
+            headers_player=self.HEADERS_2
+        response = requests.post(url, headers=headers_player)
+        if response.status_code == 200:
+            print(f" Move '{uci_move}' played successfully!")
+            self.fen=self.__get_fen_chain(uci_move, current_fen)
+        else:
+            print(f" Failed to make move: {response.text}")
         
     def is_game_over(self) -> bool:
         """
         Check if the game is over.
         :return: True if game is over, False otherwise.
         """
-        return True
-    
 
+        url = f'{self.BASE_URL}/api/game/{self.game_id}'
+        response = requests.get(url, headers=self.HEADERS_1)
+        response.raise_for_status()  # Ensure the request was successful
+    
+        game_data = response.json()
+        status = game_data.get('status')
+    
+        if status == 'started':
+            return False
+        else:
+            return True
+    
+    def shutdown(self) -> None:
+        """
+        Clean up resources (e.g., close connections).
+        """
+        self.game_id=None
+        self.fen=None 
+        return
+
+    def __accept_challenge(self,game_id):
+        url = f"https://lichess.org/api/challenge/{game_id}/accept"
+        response = requests.post(url, headers=self.HEADERS_2)
+        if response.status_code==200:
+            print(f"challenge accepted!")
+            return True
+        else:
+            print(f"challenge not accepted!")
+            return False
+        
+
+    def __get_player_turn_from_fen(self,fen):
+        fen_parts=fen.split()
+        player_turn = fen_parts[1]
+        return player_turn
+    
+    def __get_fen_chain(self,move_str, initial_fen):
+        
+        board = chess.Board(initial_fen)
+        fen_chain = [board.fen()]  
+    
+        move = chess.Move.from_uci(move_str)
+        board.push(move)
+        fen_chain.append(board.fen())
+    
+        return fen_chain[1]
+
+
+# def get_game_outcome(game_id, api_token=None):
+#     headers = {'Authorization': f'Bearer {api_token}'} if api_token else {}
+    
+    
 # class LichessAPI():
 #     
 #     API_TOKEN_BOT1 = os.getenv("LICHESS_API_TOKEN_BOT1")

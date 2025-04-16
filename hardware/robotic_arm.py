@@ -3,7 +3,7 @@ from core.interfaces import IRoboticArmModule #Si ça ne marche pas, il faut cha
 # export PYTHONPATH=/home/anas/Documents/Python/Robotic_chess:$PYTHONPATH 
 
 import threading  # Import the threading module
-from serial_communication import *
+#from serial_communication import *
 
 class RoboticArm(IRoboticArmModule):
     def __init__(self, selected_port = "COM5"):
@@ -15,44 +15,44 @@ class RoboticArm(IRoboticArmModule):
         self.is_initialized = False 
 
         self.selected_port = selected_port
-        self.com = SerialCommunication()
+       # self.com = SerialCommunication()
 
         self.loop_thread = None  # Thread for the loop function
         self.running = False     # Flag to control the loop execution
         
-        self.current_pos = Position(0,0,0)
+       # self.current_pos = Position(0,0,0)
         
-        self.chessboard_moves = ChessboardMoves()
+        #self.chessboard_moves = ChessboardMoves()
         self.state_chessboard_manager = 0
         self.last_move = "" #le dernier move fait par exemple "e2e4"
 
-    def _start_serial(self, selected_port):
-        if selected_port:
-            try:
-                self.com = SerialCommunication(selected_port, SERIAL_BAUDRATE)
-                self.com.start()
-                print("Starting serial self.com ", selected_port)
-            except serial.SerialException as e:
-                print("Serial Error", f"Failed to open port {selected_port}: {e}")
+    # def _start_serial(self, selected_port):
+    #     if selected_port:
+    #         try:
+    #             self.com = SerialCommunication(selected_port, SERIAL_BAUDRATE)
+    #             self.com.start()
+    #             print("Starting serial self.com ", selected_port)
+    #         except serial.SerialException as e:
+    #             print("Serial Error", f"Failed to open port {selected_port}: {e}")
                 
-    def _start_loop(self):
-        """
-        Start the loop function in a separate thread.
-        """
-        if self.loop_thread is None or not self.loop_thread.is_alive():
-            self.running = True
-            print("Loop thread started.")
-            self.loop_thread = threading.Thread(target=self.loop, daemon=True)
-            self.loop_thread.start()
+    # def _start_loop(self):
+    #     """
+    #     Start the loop function in a separate thread.
+    #     """
+    #     if self.loop_thread is None or not self.loop_thread.is_alive():
+    #         self.running = True
+    #         print("Loop thread started.")
+    #         self.loop_thread = threading.Thread(target=self.loop, daemon=True)
+    #         self.loop_thread.start()
             
-    def _stop_loop(self):
-        """
-        Stop the loop function.
-        """
-        self.running = False
-        if self.loop_thread is not None:
-            self.loop_thread.join()
-            print("Loop thread stopped.")
+    # def _stop_loop(self):
+    #     """
+    #     Stop the loop function.
+    #     """
+    #     self.running = False
+    #     if self.loop_thread is not None:
+    #         self.loop_thread.join()
+    #         print("Loop thread stopped.")
             
     def initialize_robot(self) -> None:
         """

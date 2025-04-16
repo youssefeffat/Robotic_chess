@@ -1,5 +1,5 @@
 from core.interfaces import IGameEngine
-from Robotic_chess.api.UserInterface import UserInterface
+from api.UserInterface import UserInterface
 from api.stockfish_api import StockfishEngine
 from hardware.camera import Camera
 from hardware.robotic_arm import RoboticArm
@@ -42,7 +42,7 @@ class GameEngine(IGameEngine):
         self.game.initialize_game(self, mode, color, difficulty, self.camera.get_fen())
 
     def start_game(self):
-        # self.user_interface.create_game()
+        # self.user_interface.create_game(self.camera.get_fen())
         self.game.start_game()
 
     def handle_human_move(self, move: str):
