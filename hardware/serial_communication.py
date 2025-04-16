@@ -3,7 +3,7 @@ import serial
 import serial.tools.list_ports
 import time
 import struct
-from donnees import *
+from hardware.donnees import *
 
 
 class SerialCommunication(QThread):
@@ -217,6 +217,17 @@ class SerialCommunication(QThread):
             self.sendEmpty(ID_SERVO_GRAB)
         else:  
             self.sendEmpty(ID_SERVO_RELEASE)
+    
+    def available(self) -> bool:
+        self.FIFO_occupation = self.FIFO_Ecriture - self.FIFO_lecture
+        if(self.FIFO_occupation<0):
+            self.FIFO_occupation = self.FIFO_occupation + SIZE_FIFO
+        if(self.FIFO_max_occupation < self.FIFO_occupation):
+            self.FIFO_max_occupation = self.FIFO_occupation
+        if(self.FIFO_occupation == 0):
+            return False
+        else:
+            return True
         
 
     def __str__(self):
