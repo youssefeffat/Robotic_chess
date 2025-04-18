@@ -1,5 +1,5 @@
 from core.interfaces import IGameEngine
-from api.lichess_api import UserInterface
+from api.UserInterface import UserInterface
 from api.stockfish_api import StockfishEngine
 from hardware.camera import Camera
 from hardware.robotic_arm import RoboticArm
@@ -25,13 +25,13 @@ from game.game import Game
 #TODO: managing the clock orchestration 
 
 class GameEngine(IGameEngine):
-    def __init__(self):
-        self.user_interface = UserInterface()
+    def __init__(self, user_interface: UserInterface):
+        self.user_interface = user_interface
         self.stockfish = StockfishEngine()
         self.camera = Camera()
         self.robot = RoboticArm()
         self.game = Game()
-        self.button = Button()  
+        self.button = Button(self.robot)  
 
     def initialize_game(self, mode: GameMode, color: Color, difficulty: int):
         print("Initializing game engine... mode:", mode, "color:", color, "difficulty:", difficulty)
@@ -42,7 +42,7 @@ class GameEngine(IGameEngine):
         self.game.initialize_game(self, mode, color, difficulty, self.camera.get_fen())
 
     def start_game(self):
-        self.user_interface.create_game()
+        # self.user_interface.create_game(self.camera.get_fen())
         self.game.start_game()
 
     def handle_human_move(self, move: str):
@@ -50,6 +50,7 @@ class GameEngine(IGameEngine):
         self.apply_human_move(move)
 
     def wait_for_human_move(self):
+        ## TODO : try and catch to be added
         if self.button:
             self.button.human_turn_finished()  # Block until the button is pressed
 

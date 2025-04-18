@@ -3,7 +3,7 @@ import serial
 import serial.tools.list_ports
 import time
 import struct
-from donnees import *
+from hardware.donnees import *
 
 
 class SerialCommunication(QThread):
@@ -115,7 +115,7 @@ class SerialCommunication(QThread):
                 #print("Header Fin")
                 if byte == 0xFF:
                     self.msgError += " Header Fin"
-                    print("Received new msg n°"+ str(self.FIFO_Ecriture) + f" from id : Ox{self.rxMsg[self.FIFO_Ecriture].id:02X}")
+                    # print("Received new msg n°"+ str(self.FIFO_Ecriture) + f" from id : Ox{self.rxMsg[self.FIFO_Ecriture].id:02X}")
                     self.FIFO_Ecriture = (self.FIFO_Ecriture + 1)%SIZE_FIFO
                 #print(self.msgError)
                 self.stateRx = 0
@@ -183,11 +183,11 @@ class SerialCommunication(QThread):
         sample_message = Message(id, length=4, data=data)
         self.sendMsg(sample_message)
 
-    def sendThreeUint16(self, id, var1, var2, var3):
+    def sendThreeUint16(self, id, var1 : int, var2 : int, var3 : int):
         data = [
-            var1 & 0xFF, (var1 >> 8) & 0xFF,
-            var2 & 0xFF, (var2 >> 8) & 0xFF,
-            var3 & 0xFF, (var3 >> 8) & 0xFF
+            (var1 & 0xFF), (((var1& 0xFF00) >> 8) & 0xFF),
+            (var2 & 0xFF), (((var2& 0xFF00) >> 8) & 0xFF),
+            (var3 & 0xFF), (((var3& 0xFF00) >> 8) & 0xFF)
         ]
         sample_message = Message(id, length=6, data=data)
         self.sendMsg(sample_message)
@@ -204,10 +204,10 @@ class SerialCommunication(QThread):
 
     def sendMove(self, pos : Position):
         # Convert the position to bytes
-        x = int(pos.x * 1000) & 0xFFFF
-        y = int(pos.y * 1000) & 0xFFFF
-        z = int(pos.z * 1000) & 0xFFFF
-
+        x = int(float(pos.x) * 1000.0) & 0xFFFF
+        y = int(float(pos.y) * 1000.0) & 0xFFFF
+        z = int(float(pos.z) * 1000.0) & 0xFFFF
+        print(f"Sending move to position: -> x: {x}, y: {y}, z: {z}")
         # Send the position data
         self.sendThreeUint16(ID_CMD_MOVE, x, y, z)
     
@@ -217,6 +217,17 @@ class SerialCommunication(QThread):
             self.sendEmpty(ID_SERVO_GRAB)
         else:  
             self.sendEmpty(ID_SERVO_RELEASE)
+    
+    def available(self) -> bool:
+        self.FIFO_occupation = self.FIFO_Ecriture - self.FIFO_lecture
+        if(self.FIFO_occupation<0):
+            self.FIFO_occupation = self.FIFO_occupation + SIZE_FIFO
+        if(self.FIFO_max_occupation < self.FIFO_occupation):
+            self.FIFO_max_occupation = self.FIFO_occupation
+        if(self.FIFO_occupation == 0):
+            return False
+        else:
+            return True
         
 
     def __str__(self):
