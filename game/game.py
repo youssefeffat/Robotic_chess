@@ -38,12 +38,17 @@ class Game:
 
     def start_human_vs_bot_game(self):
         if self.color == Color.WHITE.value:
+            # TODO : potential issue 
             while not self.is_game_over():
                 self.engine.handle_human_move()
+                if self.is_game_over():
+                    break
                 self.engine.handle_bot_move()
         elif self.color == Color.BLACK.value:
             while not self.is_game_over():
                 self.engine.handle_bot_move()
+                if self.is_game_over():
+                    break
                 self.engine.handle_human_move()
         else:
             raise ValueError("Invalid player color")

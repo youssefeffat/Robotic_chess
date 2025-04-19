@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, jsonify
-from Robotic_chess.api.UserInterface import UserInterface
+from api.UserInterface import UserInterface
 from engine.game_engine import GameEngine
 from dotenv import load_dotenv
 # import os
@@ -37,7 +37,8 @@ def start_game():
     session_url = user_interface.create_game()
     game_engine.start_game()
 
-
+    # TODO : redirection to the session_url
+    
 
     threading.Thread(target=game_engine.start_game).start()
 

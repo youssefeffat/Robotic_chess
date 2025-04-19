@@ -28,6 +28,7 @@ class Camera(ICameraModule):
             - A valid FEN string representing the current chessboard state.
         """
         print("Capturing chessboard state...")
+
         # Placeholder: Simulate FEN generation
         return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 

@@ -1,5 +1,5 @@
 from core.interfaces import IGameEngine
-from Robotic_chess.api.UserInterface import UserInterface
+from api.UserInterface import UserInterface
 from api.stockfish_api import StockfishEngine
 from hardware.camera import Camera
 from hardware.robotic_arm import RoboticArm
@@ -66,6 +66,8 @@ class GameEngine(IGameEngine):
         move = self.stockfish.calculate_best_move(self.game.get_fen())
         self.robot.execute_move(move)
         self.verify_robot_move(move)
+        #TODO : case if the humain move is not valid (for camera)
+        #TODO : case if the humain move is not valid
         self.user_interface.apply_move(move)
         if self.game.is_game_over():
             self.shutdown()

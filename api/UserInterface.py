@@ -29,11 +29,11 @@ class UserInterface(IUserInterface):
 
 class LichessAPI( IUserInterface):
     BASE_URL = "https://lichess.org"
-    BOT1_USERNAME = os.getenv("LICHESS_BOT1_USERNAME")
-    BOT2_USERNAME = os.getenv("LICHESS_BOT2_USERNAME")
-    CLOCK_LIMIT = 600
-    if not BOT1_USERNAME or not BOT2_USERNAME:
-        raise EnvironmentError("LICHESS_BOT1_USERNAME OR LICHESS_BOT2_USERNAME not found in environment variables.")
+    # BOT1_USERNAME = os.getenv("LICHESS_BOT1_USERNAME")
+    # BOT2_USERNAME = os.getenv("LICHESS_BOT2_USERNAME")
+    # CLOCK_LIMIT = 600
+    # if not BOT1_USERNAME or not BOT2_USERNAME:
+    #     raise EnvironmentError("LICHESS_BOT1_USERNAME OR LICHESS_BOT2_USERNAME not found in environment variables.")
 
     # Implement IUserInterface methods 
     def __init__(self) -> None: 
@@ -46,7 +46,7 @@ class LichessAPI( IUserInterface):
         """
         return 
 
-    def make_move(self, uci_move: str) -> None:
+    def apply_move(self, uci_move: str) -> None:
         """
         Submit a move to Lichess for the bot's turn.
         :param game_id: ID of the game.
@@ -59,6 +59,12 @@ class LichessAPI( IUserInterface):
         :return: True if game is over, False otherwise.
         """
         return True
+    
+    def shutdown(self) -> None:
+        """
+        Clean up resources (e.g., close connections).
+        """
+        print("Lichess API session closed.")
     
 
 # class LichessAPI():
