@@ -1,29 +1,28 @@
 from core.interfaces import IButtonModule
 import time
+from robotic_arm import *
 
 class Button(IButtonModule):
-    def __init__(self):
+    def __init__(self, robotic_arm : RoboticArm):
         """
         Initialize the Button class.
         This is a placeholder implementation.
         The actual implementation will involve hardware interaction.
         """
         self.is_initialized = False  
+        self.robotic_arm = robotic_arm
 
     def initialize_button(self) -> bool:
         """
         Initialize the button module.
-        This function sets up the button hardware (pins, etc).
-
+        This function sets up the button.
+        The state of the button is transferred by the electronic board.
         Outputs:
             - Returns True if initialization succeeds, False otherwise.
         """
         print("Initializing button module...")
         try:
-           ## LOGIC
-           ##
-           ##                       CODE
-           ##
+            self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
             self.is_initialized = True
             print("Button module initialized successfully.")
             return True
@@ -44,21 +43,19 @@ class Button(IButtonModule):
         Outputs:
             - Returns True if the button was pressed successfully, False if a hardware issue occurs.
         """
-        if not self.is_initialized:
-            self.initialize_button()
-            if not self.is_initialized:
-                print("Error: Button module is not initialized. Please check the hardware setup.")
-                return False
-
         print("Waiting for the button press...")
-        start_time = time.time()
+        
         timeout = 300  
-
+        start_time = time.time()
+        start_time_request = time.time()
         while not self.button_pressed():
             # Check for timeout
             if time.time() - start_time > timeout:
                 print("Error: Button press not detected within the timeout period. Possible hardware issue.")
                 return False
+            elif (time.time() - start_time_request) > 1:
+                start_time_request = time.time()
+                self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
         print("Button pressed! Human turn finished.")
         return True
 
@@ -74,7 +71,7 @@ class Button(IButtonModule):
         ##
         ##                       CODE
         ##
-        return True
+        return self.robotic_arm.button_state
 
     def shutdown(self) -> None:
         """

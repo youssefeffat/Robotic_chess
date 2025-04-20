@@ -102,7 +102,7 @@ class IRoboticArmModule(ABC):
 # Interface for the User Interface (Lichess API Integration)
 class IUserInterface(ABC):
     @abstractmethod
-    def create_game(self) -> None:
+    def create_game(self,fen) -> None:
         """Create a new game session (e.g., on Lichess)."""
         pass
 

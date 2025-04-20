@@ -1,4 +1,5 @@
 from core.enums import GameMode, Color
+# from engine.game_engine import GameEngine  # Import GameEngine from the appropriate module
 
 class Game:
     default_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -59,11 +60,13 @@ class Game:
 
     def is_game_over(self) -> bool:
         # Example implementation (replace with actual logic)
-        return self.engine.is_game_over()
+        # return self.engine.is_game_over()
+        return False
 
     def get_game_state(self) -> str:
         # Example implementation (replace with actual logic)
-        return self.engine.get_game_state()
+        # return self.engine.get_game_state()
+        return "Game is ongoing"
     
     def close_game(self):
         # Example implementation (replace with actual logic)

@@ -31,7 +31,7 @@ class GameEngine(IGameEngine):
         self.camera = Camera()
         self.robot = RoboticArm()
         self.game = Game()
-        self.button = Button()  
+        self.button = Button(self.robot)  
 
     def initialize_game(self, mode: GameMode, color: Color, difficulty: int):
         print("Initializing game engine... mode:", mode, "color:", color, "difficulty:", difficulty)
@@ -42,7 +42,7 @@ class GameEngine(IGameEngine):
         self.game.initialize_game(self, mode, color, difficulty, self.camera.get_fen())
 
     def start_game(self):
-        # self.user_interface.create_game()
+        # self.user_interface.create_game(self.camera.get_fen())
         self.game.start_game()
 
     def handle_human_move(self, move: str):

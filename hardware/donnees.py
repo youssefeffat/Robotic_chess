@@ -22,7 +22,8 @@ ID_ACK_HOMING                  = 0xA7 # On réçoit l'accusé de réception
 ID_SEND_CURRENT_POSITION       = 0xA8 # On demande d'envoyer la position courante
 ID_ACK_SEND_CURRENT_POSITION   = 0xA9 # On reçoit la position courante
 
-ID_CMD_BOUTTON_STATE = 0xB1  # Request button state
+ID_CMD_BOUTTON_STATE           = 0xB1  # Request button state
+ID_ACK_CMD_BOUTTON_STATE       = 0xB2 # On reçoit l'accusé de réception de l'état du bouton
 
 idComEnText = {
     0x00: "",
@@ -38,6 +39,8 @@ idComEnText = {
     0xA9: "ID_ACK_SEND_CURRENT_POSITION",
     0xC0: "ID_ACK_GENERAL",
     0xD0: "ID_REPEAT_REQUEST",
+    0xB1: "ID_CMD_BOUTTON_STATE",
+    0xB2: "ID_ACK_CMD_BOUTTON_STATE",
 }
 
 class Message():
@@ -78,8 +81,8 @@ class Position():
     def __str__(self):
         return f"Position(x: {self.x}, y: {self.y}, z: {self.z})"
 
-TAILLE_CARREAU = 0.05 #En metres
-HAUTEUR_BRAS = -0.1 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+TAILLE_CARREAU = 0.036 #En metres
+HAUTEUR_BRAS = 0.05 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 class ChessboardMoves():
     def __init__(self):
@@ -87,18 +90,25 @@ class ChessboardMoves():
         self.cursor_move_write = 0
         self.cursor_move_read = 0
         
-        self.posA1 = Position(0, 0, 0) #Position de A1, utilisé comme référence, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.posA1 = Position(TAILLE_CARREAU, TAILLE_CARREAU, 0) #Position de A1, utilisé comme référence, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
+        self.move_finished = False #On va l'utiliser pour savoir
+
     def addMoves(self, move):
         self.moves[self.cursor_move_write] = move
         self.cursor_move_write = (self.cursor_move_write + 1) % SIZE_FIFO
-    
+
     def thereIsNewMoveToDo(self):
         if (self.cursor_move_write - self.cursor_move_read):
             return True
         else:
             return False
     
+    def waitForMoveToFinish(self):
+        while(self.move_finished == False):
+            pass
+        self.move_finished = False
+
     def getNextMove(self):
         if(self.thereIsNewMoveToDo() == False):
             return ""
@@ -125,10 +135,10 @@ class ChessboardMoves():
         end_pos = chessNotationToPosition(move[2:])
         return start_pos, end_pos
 
-    def convertPositionToChessNotation(self, position: Position):
+    def convertPosToChessNotation(self, position: Position):
         # Convert the position to chess notation
-        column = chr(int((position.x - self.posA1.x) / TAILLE_CARREAU) + ord('a'))
-        row = str(int((position.y - self.posA1.y) / TAILLE_CARREAU) + 1)
+        column = chr(int((position.x - self.posA1.x + 0.01) / TAILLE_CARREAU) + ord('a'))
+        row = str(int((position.y - self.posA1.y + 0.01) / TAILLE_CARREAU) + 1)
         return f"{column}{row}"
 
 if __name__ == "__main__":
