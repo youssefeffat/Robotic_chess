@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from core.interfaces import ICameraModule
+# export PYTHONPATH=/home/anas/Documents/Python/Robotic_chess:$PYTHONPATH 
 
 #Installation à faire :
 #     sudo apt-get install qtwayland5
@@ -54,6 +55,8 @@ class ChessboardDetector:
         self.image = cv2.imread(image_path)
         self.board_size = 400
         self.square_size = self.board_size // 8
+        self.countours_size = 0 # Taille du contour autour du carré 
+        
         self.piece_detected = [["." for _ in range(8)] for _ in range(8)]
         self.red_lower = np.array([0, 150, 50])
         self.red_upper = np.array([10, 255, 255])
@@ -72,6 +75,8 @@ class ChessboardDetector:
 
         self.cyan_lower = np.array([75, 150, 50])
         self.cyan_upper = np.array([100, 255, 255])
+        
+        self.hsv_ranges = None
 
     def order_points(self, pts):
         rect = np.zeros((4, 2), dtype="float32")
@@ -99,23 +104,56 @@ class ChessboardDetector:
         return self.edges
 
     def find_chessboard_contour(self):
+        """
+        Find the contour of the chessboard in the image, even if the shape is not perfectly square
+        or if the edges are not continuous.
+
+        Returns:
+            approx (np.ndarray): Approximated polygon of the chessboard contour with 4 corners.
+        """
+        # Find all contours in the edge-detected image
         contours, _ = cv2.findContours(self.edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = [c for c in contours if cv2.contourArea(c) > 70000]  # Ignore small contours.
-        if not contours:
-            print("No contours found.")
+
+        # Filter contours by area to ignore small or irrelevant ones
+        min_area = 50000  # Lowered to account for imperfect shapes
+        filtered_contours = [c for c in contours if cv2.contourArea(c) > min_area]
+
+        if not filtered_contours:
+            print("No contours found with sufficient area.")
             return None
-        largest_contour = max(contours, key=cv2.contourArea)
-        epsilon = 0.02 * cv2.arcLength(largest_contour, True)
+
+        # Select the largest contour by area
+        largest_contour = max(filtered_contours, key=cv2.contourArea)
+
+        # Approximate the contour to a polygon
+        epsilon = 0.05 * cv2.arcLength(largest_contour, True)  # Increased epsilon for less strict approximation
         approx = cv2.approxPolyDP(largest_contour, epsilon, True)
+
+        # Visualize the detected contour
         contour_image = self.image.copy()
         cv2.drawContours(contour_image, [largest_contour], -1, (0, 255, 0), 3)
         cv2.imshow("Step 3: Chessboard Contour", contour_image)
         cv2.waitKey(1000)
+
+        # Ensure the approximated polygon has exactly 4 corners
         if len(approx) == 4:
+            print("Chessboard contour detected successfully.")
             return approx
         else:
-            print("Could not detect exactly 4 corners of the chessboard.")
-            return None
+            print(f"Detected contour does not have 4 corners (found {len(approx)} corners).")
+            print("Attempting to fit a quadrilateral...")
+
+            # Fit a quadrilateral if the contour does not have exactly 4 corners
+            rect = cv2.minAreaRect(largest_contour)
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
+
+            # Visualize the fitted quadrilateral
+            cv2.drawContours(contour_image, [box], -1, (0, 0, 255), 2)
+            cv2.imshow("Step 3: Fitted Quadrilateral", contour_image)
+            cv2.waitKey(1000)
+
+            return box
 
     def apply_perspective_transform(self, approx):
         pts = np.array([p[0] for p in approx], dtype="float32")
@@ -130,14 +168,14 @@ class ChessboardDetector:
         self.warped_image = cv2.warpPerspective(self.image, matrix, (self.board_size, self.board_size))
         cv2.imshow("Step 4: Perspective Transform", self.warped_image)
         cv2.waitKey(1000)
-        self.draw_grid()
+        self.draw_grid(self.warped_image)
         return self.warped_image
 
-    def draw_grid(self):
-        grid_image = self.warped_image.copy()
+    def draw_grid(self, image):
+        grid_image = image.copy()
         for row in range(8):
             for col in range(8):
-                x, y = col * self.square_size, row * self.square_size
+                x, y = col * self.square_size + self.countours_size, row * self.square_size + self.countours_size
                 cv2.rectangle(grid_image, (x, y), (x + self.square_size, y + self.square_size), (255, 0, 0), 1)
                 square_name = f"{chr(97 + col)}{8 - row}"
                 cv2.putText(grid_image, square_name, (x + 5, y + 20),
@@ -145,60 +183,195 @@ class ChessboardDetector:
         cv2.imshow("Step 5: Chessboard Grid", grid_image)
         cv2.waitKey(1000)
 
-    def detect_pieces(self):
-        threshold = 0
+    # def detect_pieces(self):
+    #     threshold = 0
+    #     for row in range(8):
+    #         for col in range(8):
+    #             x, y = col * self.square_size + self.countours_size, row * self.square_size + self.countours_size
+    #             square = self.warped_image[y:y + self.square_size, x:x + self.square_size]
+    #             hsv_square = cv2.cvtColor(square, cv2.COLOR_BGR2HSV)
+
+    #             red_mask = cv2.inRange(hsv_square, self.red_lower, self.red_upper)
+    #             blue_mask = cv2.inRange(hsv_square, self.blue_lower, self.blue_upper)
+    #             green_mask = cv2.inRange(hsv_square, self.green_lower, self.green_upper)
+    #             orange_mask = cv2.inRange(hsv_square, self.orange_lower, self.orange_upper)
+    #             magenta_mask = cv2.inRange(hsv_square, self.magenta_lower, self.magenta_upper)
+    #             cyan_mask = cv2.inRange(hsv_square, self.cyan_lower, self.cyan_upper)
+
+    #             total_pixels = self.square_size * self.square_size
+    #             red_coverage = np.sum(red_mask) / total_pixels
+    #             blue_coverage = np.sum(blue_mask) / total_pixels
+    #             green_coverage = np.sum(green_mask) / total_pixels
+    #             orange_coverage = np.sum(orange_mask) / total_pixels
+    #             magenta_coverage = np.sum(magenta_mask) / total_pixels
+    #             cyan_coverage = np.sum(cyan_mask) / total_pixels
+
+    #             flag_red = red_coverage > threshold
+    #             flag_blue = blue_coverage > threshold
+    #             flag_green = green_coverage > threshold
+    #             flag_orange = orange_coverage > threshold
+    #             flag_magenta = magenta_coverage > threshold
+    #             flag_cyan = cyan_coverage > threshold
+
+    #             if flag_blue and flag_magenta:
+    #                 self.piece_detected[row][col] = "R"  # White R: Blue + Magenta
+    #             elif flag_red and flag_orange:
+    #                 self.piece_detected[row][col] = "Q"  # White Q: Red + Orange
+    #             elif flag_red and flag_cyan:
+    #                 self.piece_detected[row][col] = "K"  # White K: Red + Cyan
+    #             elif flag_orange and flag_green:
+    #                 self.piece_detected[row][col] = "N"  # White N: Orange + Green
+    #             elif flag_blue:
+    #                 self.piece_detected[row][col] = "P"  # White P: Blue only
+    #             elif flag_green:
+    #                 self.piece_detected[row][col] = "B"  # White B: Green only
+
+    #             elif flag_blue and flag_red:
+    #                 self.piece_detected[row][col] = "q"  # Black q: Blue + Red
+    #             elif flag_green and flag_red:
+    #                 self.piece_detected[row][col] = "n"  # Black n: Green + Red
+    #             elif flag_green and flag_magenta:
+    #                 self.piece_detected[row][col] = "b"  # Black b: Green + Magenta
+    #             elif flag_orange and flag_magenta:
+    #                 self.piece_detected[row][col] = "k"  # Black k: Orange + Magenta
+    #             elif flag_red:
+    #                 self.piece_detected[row][col] = "p"  # Black p: Red only
+    #             # Otherwise, remains empty (".")
+    #     return self.piece_detected
+    def calibration(self, image_path):
+        """
+        Calibrate the HSV color ranges for each type of chess piece and empty squares (black and white)
+        based on a reference image. The reference image must have the chess pieces in their initial positions.
+
+        Parameters:
+            image_path (str): Path to the calibration image.
+
+        Returns:
+            dict: A dictionary containing the HSV ranges for each piece type and empty squares.
+        """
+        print("Calibrating HSV ranges...")
+        # Load the image
+        image = cv2.imread(image_path)
+        if image is None:
+            raise ValueError("Error: Image not loaded. Please check the image path.")
+
+        # Define the initial positions of the pieces on the chessboard
+        initial_positions = {
+            "r": [(0, 0), (7, 0)],  # Black Rooks
+            "n": [(1, 0), (6, 0)],  # Black Knights
+            "b": [(2, 0), (5, 0)],  # Black Bishops
+            "q": [(3, 0)],          # Black Queen
+            "k": [(4, 0)],          # Black King
+            "p": [(i, 1) for i in range(8)],  # Black Pawns
+            "R": [(0, 7), (7, 7)],  # White Rooks
+            "N": [(1, 7), (6, 7)],  # White Knights
+            "B": [(2, 7), (5, 7)],  # White Bishops
+            "Q": [(3, 7)],          # White Queen
+            "K": [(4, 7)],          # White King
+            "P": [(i, 6) for i in range(8)],  # White Pawns
+            "black_empty": [(i, j) for i in range(8) for j in range(2, 4) if (i + j) % 2 == 0],  # Empty black squares
+            "white_empty": [(i, j) for i in range(8) for j in range(2, 4) if (i + j) % 2 == 1]   # Empty white squares
+        }
+
+        # Perspective transform to align the chessboard
+        detector = ChessboardDetector(image_path)
+        detector.preprocess_image()
+        detector.detect_edges()
+        approx = detector.find_chessboard_contour()
+        if approx is None:
+            raise ValueError("Error: Chessboard contour not detected.")
+        warped_image = detector.apply_perspective_transform(approx)
+
+        # Convert the warped image to HSV
+        hsv_image = cv2.cvtColor(warped_image, cv2.COLOR_BGR2HSV)
+
+        # Dictionary to store HSV ranges for each piece type and empty squares
+        hsv_ranges = {}
+
+        # Measure the HSV values for each piece type and empty squares
+        for piece, positions in initial_positions.items():
+            hsv_values = []
+            for col, row in positions:
+                x = col * self.square_size + self.countours_size
+                y = row * self.square_size + self.countours_size
+                center_x = x + self.square_size // 2
+                center_y = y + self.square_size // 2
+                center_square = hsv_image[y + self.square_size // 3 :center_y, x + self.square_size // 3:center_x]
+                
+                # # Smooth the colors by applying a Gaussian blur
+                # smoothed_square = cv2.GaussianBlur(center_square, (5, 5), 0)
+                
+                # # Find the most dominant color by creating a histogram
+                # hist = cv2.calcHist([smoothed_square], [0, 1, 2], None, [180, 256, 256], [0, 180, 0, 256, 0, 256])
+                # dominant_color = np.unravel_index(np.argmax(hist), hist.shape)
+                
+                # # Replace the square with the dominant color
+                # smoothed_square[:, :] = dominant_color
+                
+                # cv2.imshow(f"Calibration Square {piece} at {chr(97 + col)}{8 - row}", smoothed_square)
+                
+                # hsv_mean = cv2.mean(smoothed_square)[:3]  # Get the mean HSV values
+                hsv_mean = cv2.mean(center_square)[:3]  # Get the mean HSV values
+                hsv_values.append(hsv_mean)
+                print(f"Calibrating {piece}... {positions} hsv_values : {hsv_values}")
+
+            # Calculate the HSV range for the piece or empty square
+            h_values = [hsv[0] for hsv in hsv_values]
+            s_values = [hsv[1] for hsv in hsv_values]
+            v_values = [hsv[2] for hsv in hsv_values]
+
+            h_min, h_max = max(0, min(h_values) - 10), min(180, max(h_values) + 10)
+            s_min, s_max = max(0, min(s_values) - 40), min(255, max(s_values) + 40)
+            v_min, v_max = max(0, min(v_values) - 40), min(255, max(v_values) + 40)
+
+            hsv_ranges[piece] = {
+                "lower": np.array([h_min, s_min, v_min]),
+                "upper": np.array([h_max, s_max, v_max])
+            }
+
+        # Print the calibrated HSV ranges
+        for piece, ranges in hsv_ranges.items():
+            print(f"{piece}: Lower={ranges['lower']}, Upper={ranges['upper']}")
+
+        self.hsv_ranges = hsv_ranges
+        print("Calibration complete.")
+        self.draw_grid(warped_image)
+        return hsv_ranges
+    
+    def detect_pieces(self, affiche=False):
+        if not self.hsv_ranges:
+            raise ValueError("Error: HSV ranges not calibrated. Please run the calibration method first.")
+
         for row in range(8):
             for col in range(8):
-                x, y = col * self.square_size, row * self.square_size
-                square = self.warped_image[y:y + self.square_size, x:x + self.square_size]
+                # x, y = col * self.square_size + self.countours_size, row * self.square_size + self.countours_size
+                # square = self.warped_image[y:y + self.square_size, x:x + self.square_size]
+                x = col * self.square_size + self.countours_size
+                y = row * self.square_size + self.countours_size
+                center_x = x + self.square_size // 2
+                center_y = y + self.square_size // 2
+                square = self.warped_image[y + self.square_size // 3 :center_y, x + self.square_size // 3:center_x]
                 hsv_square = cv2.cvtColor(square, cv2.COLOR_BGR2HSV)
 
-                red_mask = cv2.inRange(hsv_square, self.red_lower, self.red_upper)
-                blue_mask = cv2.inRange(hsv_square, self.blue_lower, self.blue_upper)
-                green_mask = cv2.inRange(hsv_square, self.green_lower, self.green_upper)
-                orange_mask = cv2.inRange(hsv_square, self.orange_lower, self.orange_upper)
-                magenta_mask = cv2.inRange(hsv_square, self.magenta_lower, self.magenta_upper)
-                cyan_mask = cv2.inRange(hsv_square, self.cyan_lower, self.cyan_upper)
+                best_piece = None
+                best_coverage = 0
 
-                total_pixels = self.square_size * self.square_size
-                red_coverage = np.sum(red_mask) / total_pixels
-                blue_coverage = np.sum(blue_mask) / total_pixels
-                green_coverage = np.sum(green_mask) / total_pixels
-                orange_coverage = np.sum(orange_mask) / total_pixels
-                magenta_coverage = np.sum(magenta_mask) / total_pixels
-                cyan_coverage = np.sum(cyan_mask) / total_pixels
+                for piece, ranges in self.hsv_ranges.items():
+                    mask = cv2.inRange(hsv_square, ranges["lower"], ranges["upper"])
+                    coverage = np.sum(mask) / (self.square_size * self.square_size)
+                    if coverage > best_coverage and coverage > 0.5:  # Adjust threshold as needed
+                        best_piece = piece
+                        best_coverage = coverage
 
-                flag_red = red_coverage > threshold
-                flag_blue = blue_coverage > threshold
-                flag_green = green_coverage > threshold
-                flag_orange = orange_coverage > threshold
-                flag_magenta = magenta_coverage > threshold
-                flag_cyan = cyan_coverage > threshold
-
-                if flag_blue and flag_magenta:
-                    self.piece_detected[row][col] = "R"  # White R: Blue + Magenta
-                elif flag_red and flag_orange:
-                    self.piece_detected[row][col] = "Q"  # White Q: Red + Orange
-                elif flag_red and flag_cyan:
-                    self.piece_detected[row][col] = "K"  # White K: Red + Cyan
-                elif flag_orange and flag_green:
-                    self.piece_detected[row][col] = "N"  # White N: Orange + Green
-                elif flag_blue:
-                    self.piece_detected[row][col] = "P"  # White P: Blue only
-                elif flag_green:
-                    self.piece_detected[row][col] = "B"  # White B: Green only
-
-                elif flag_blue and flag_red:
-                    self.piece_detected[row][col] = "q"  # Black q: Blue + Red
-                elif flag_green and flag_red:
-                    self.piece_detected[row][col] = "n"  # Black n: Green + Red
-                elif flag_green and flag_magenta:
-                    self.piece_detected[row][col] = "b"  # Black b: Green + Magenta
-                elif flag_orange and flag_magenta:
-                    self.piece_detected[row][col] = "k"  # Black k: Orange + Magenta
-                elif flag_red:
-                    self.piece_detected[row][col] = "p"  # Black p: Red only
-                # Otherwise, remains empty (".")
+                if best_piece:
+                    self.piece_detected[row][col] = best_piece
+                    if affiche:
+                        print(f"Detected {best_piece} at {chr(97 + col)}{8 - row} with coverage: {best_coverage:.2f}")
+                        cv2.imshow(f"Square {chr(97 + col)}{8 - row}", hsv_square)
+                        cv2.waitKey(100)
+        
+        if affiche:
+            cv2.destroyAllWindows()
         return self.piece_detected
 
     def generate_fen(self):
@@ -207,7 +380,7 @@ class ChessboardDetector:
             empty_count = 0
             fen_row = ""
             for cell in row:
-                if cell == ".":
+                if cell == "white_empty" or cell == "black_empty" or cell == ".":
                     empty_count += 1
                 else:
                     if empty_count > 0:
@@ -284,16 +457,30 @@ def testCamera():
     cap.release()
     cv2.destroyAllWindows()
 
-def testImage(image_path):
-    detector = ChessboardDetector(image_path)
+def testImage(image_path, image_path2=None):
+    if image_path2 is None:
+        image_path2 = image_path
+    detector = ChessboardDetector(image_path2)
+    detector.countours_size = 0
+    
+    hsv_image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2HSV)
+    cv2.imshow("HSV Image", hsv_image)
+    
+    detector.calibration(image_path)
     detector.preprocess_image()
     detector.detect_edges()
     approx = detector.find_chessboard_contour()
     if approx is not None:
         detector.apply_perspective_transform(approx)
-        detector.detect_pieces()
+        detector.detect_pieces(True)
         fen_string = detector.generate_fen()
         print("Detected FEN:", fen_string)
+        from api.stockfish_api import StockfishEngine
+        stockfish = StockfishEngine()
+        stockfish.stockfish.set_fen_position(fen_string)
+        print(stockfish.stockfish.get_board_visual())
+        print(stockfish.stockfish.get_fen_position())
+        
         cv2.imshow("Final Processed Chessboard", detector.warped_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -301,5 +488,5 @@ def testImage(image_path):
         print("Chessboard contour not detected.")
 
 if __name__ == "__main__":
-    testImage("/home/anas/Documents/Python/Robotic_chess/hardware/images/image3.png")
+    testImage("/home/anas/Documents/Python/Robotic_chess/hardware/images/image2.png", "/home/anas/Documents/Python/Robotic_chess/hardware/images/image3.png")
     testCamera()
