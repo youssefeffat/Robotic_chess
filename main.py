@@ -35,7 +35,7 @@ def start_game():
     
     game_engine.initialize_game(mode=mode, color=color, difficulty=difficulty)
     
-    session_url = user_interface.create_game()
+    session_url = user_interface.create_game("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq")
     game_engine.start_game()
 
     # TODO : redirection to the session_url
