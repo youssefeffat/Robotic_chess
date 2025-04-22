@@ -45,7 +45,7 @@ class Button(IButtonModule):
         """
         print("Waiting for the button press...")
         
-        timeout = 300  
+        timeout = 5  
         start_time = time.time()
         start_time_request = time.time()
         while not self.button_pressed():

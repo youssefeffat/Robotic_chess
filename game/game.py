@@ -1,5 +1,5 @@
 from core.enums import GameMode, Color
-# from engine.game_engine import GameEngine  # Import GameEngine from the appropriate module
+from engine.game_engine import GameEngine  # Import GameEngine from the appropriate module
 
 class Game:
     default_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -14,7 +14,7 @@ class Game:
         self.difficulty = None
         self.fen = None
 
-    def initialize_game(self, engine, mode: GameMode = default_mode, color: Color = default_color, difficulty: int = default_difficulty, fen: str = default_fen):
+    def initialize_game(self, engine : GameEngine, mode: GameMode = default_mode, color: Color = default_color, difficulty: int = default_difficulty, fen: str = default_fen):
         print("Initializing game... mode:", mode, "color:", color, "difficulty:", difficulty)
         self.engine = engine
         self.mode = mode

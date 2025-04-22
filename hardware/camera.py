@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from core.interfaces import ICameraModule
 
+#Installation à faire :
+#     sudo apt-get install qtwayland5
+
 class Camera(ICameraModule):
     def __init__(self):
         """
@@ -81,6 +84,8 @@ class ChessboardDetector:
         return rect
 
     def preprocess_image(self):
+        if self.image is None:
+            raise ValueError("Error: Image not loaded. Please check the image path or input frame.")
         gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         self.blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
         cv2.imshow("Step 1: Grayscale & Blurring", self.blurred_image)
@@ -252,7 +257,7 @@ class ChessboardDetector:
         return detector.process_image(show_intermediate)
 
 
-if __name__ == "__main__":
+def testCamera():
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Error: Could not open camera.")
@@ -278,3 +283,23 @@ if __name__ == "__main__":
 
     cap.release()
     cv2.destroyAllWindows()
+
+def testImage(image_path):
+    detector = ChessboardDetector(image_path)
+    detector.preprocess_image()
+    detector.detect_edges()
+    approx = detector.find_chessboard_contour()
+    if approx is not None:
+        detector.apply_perspective_transform(approx)
+        detector.detect_pieces()
+        fen_string = detector.generate_fen()
+        print("Detected FEN:", fen_string)
+        cv2.imshow("Final Processed Chessboard", detector.warped_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    else:
+        print("Chessboard contour not detected.")
+
+if __name__ == "__main__":
+    testImage("/home/anas/Documents/Python/Robotic_chess/hardware/images/image3.png")
+    testCamera()
