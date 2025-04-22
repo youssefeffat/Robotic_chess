@@ -9,6 +9,7 @@ import threading
 #     pip install flask
 #     pip install dotenv
 #     sudo apt-get install stockfish
+#     pip install numpy matplotlib
 # Load environment variables from .env file
 load_dotenv()
 
@@ -46,4 +47,6 @@ def start_game():
 
 
 if __name__ == "__main__":
+    print("Hello world")
     app.run(debug=True)
+    print("Bye world")

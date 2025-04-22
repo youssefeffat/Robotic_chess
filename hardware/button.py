@@ -1,6 +1,6 @@
 from core.interfaces import IButtonModule
 import time
-from robotic_arm import *
+from hardware.robotic_arm import *  # Adjusted the import path to match the project structure
 
 class Button(IButtonModule):
     def __init__(self, robotic_arm : RoboticArm):
