@@ -41,7 +41,7 @@ class Game:
         if self.color == Color.WHITE.value:
             # TODO : potential issue 
             while not self.is_game_over():
-                self.engine.handle_human_move()
+                self.engine.handle_human_move("e2e4")
                 if self.is_game_over():
                     break
                 self.engine.handle_bot_move()

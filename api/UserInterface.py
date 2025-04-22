@@ -21,7 +21,7 @@ class UserInterface(IUserInterface):
         return self.lichess.create_game(fen)
 
     def apply_move(self, move: str) -> None:
-        self.lichess.make_move(move)
+        self.lichess.apply_move(move)
 
     def is_game_over(self, game_id: str) -> bool:
         return self.lichess.is_game_over(game_id)
@@ -163,6 +163,12 @@ class LichessAPI( IUserInterface):
     
         return fen_chain[1]
 
+if __name__ == "__main__":
+    lichess = LichessAPI()
+    lichess.create_game("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq")
+    lichess.apply_move("e2e4")
+    print(lichess.is_game_over())
+    lichess.shutdown()
 
 # def get_game_outcome(game_id, api_token=None):
 #     headers = {'Authorization': f'Bearer {api_token}'} if api_token else {}
