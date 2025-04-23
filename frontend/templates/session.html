@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Session</title>
+</head>
+<body>
+    <h1>Welcome to Your Game Session</h1>
+    <p>Your session URL is: <strong>{{ session_url }}</strong></p>
+
+    <!-- Add a chessboard or other game-related UI elements here -->
+    <div id="chessboard">
+        <!-- Placeholder for the chessboard -->
+        <p>Chessboard will be rendered here.</p>
+    </div>
+
+    <script>
+        // Example: Use JavaScript to dynamically load the game board
+        const sessionUrl = "{{ session_url }}";
+        console.log("Session URL:", sessionUrl);
+
+        // You can use this session URL to fetch game data or initialize the game board
+    </script>
+</body>
+</html>

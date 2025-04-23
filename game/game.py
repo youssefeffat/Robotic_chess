@@ -1,5 +1,5 @@
 from core.enums import GameMode, Color
-from engine.game_engine import GameEngine  # Import GameEngine from the appropriate module
+# from engine.game_engine import GameEngine  # Import GameEngine from the appropriate module
 
 class Game:
     default_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -8,15 +8,15 @@ class Game:
     default_color = Color.WHITE.value
 
     def __init__(self):
-        self.engine = None
+        # self.engine = None
         self.mode = None
         self.color = None
         self.difficulty = None
         self.fen = None
 
-    def initialize_game(self, engine : GameEngine, mode: GameMode = default_mode, color: Color = default_color, difficulty: int = default_difficulty, fen: str = default_fen):
+    def initialize_game(self, mode: GameMode = default_mode, color: Color = default_color, difficulty: int = default_difficulty, fen: str = default_fen):
         print("Initializing game... mode:", mode, "color:", color, "difficulty:", difficulty)
-        self.engine = engine
+        # self.engine = engine
         self.mode = mode
         self.color = color
         self.difficulty = difficulty
@@ -38,25 +38,27 @@ class Game:
             raise ValueError("Invalid game mode")
 
     def start_human_vs_bot_game(self):
-        if self.color == Color.WHITE.value:
-            # TODO : potential issue 
-            while not self.is_game_over():
-                self.engine.handle_human_move("e2e4")
-                if self.is_game_over():
-                    break
-                self.engine.handle_bot_move()
-        elif self.color == Color.BLACK.value:
-            while not self.is_game_over():
-                self.engine.handle_bot_move()
-                if self.is_game_over():
-                    break
-                self.engine.handle_human_move()
-        else:
-            raise ValueError("Invalid player color")
+        # if self.color == Color.WHITE.value:
+        #     # TODO : potential issue 
+        #     while not self.is_game_over():
+        #         self.engine.handle_human_move("e2e4")
+        #         if self.is_game_over():
+        #             break
+        #         self.engine.handle_bot_move()
+        # elif self.color == Color.BLACK.value:
+        #     while not self.is_game_over():
+        #         self.engine.handle_bot_move()
+        #         if self.is_game_over():
+        #             break
+        #         self.engine.handle_human_move()
+        # else:
+        #     raise ValueError("Invalid player color")
+        print("Starting human vs robot game")
 
     def start_bot_vs_bot_game(self):
-        while not self.is_game_over():
-            self.engine.handle_bot_move()
+        # while not self.is_game_over():
+        #     self.engine.handle_bot_move()
+        print("Starting robot vs robot game")
 
     def is_game_over(self) -> bool:
         # Example implementation (replace with actual logic)
