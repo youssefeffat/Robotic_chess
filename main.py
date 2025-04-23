@@ -4,6 +4,12 @@ from game.game_manager import GameManager
 from dotenv import load_dotenv
 import threading
 
+# Installation à faire : 
+#     pip install flask
+#     pip install dotenv
+#     pip install stockfish
+#     pip install numpy matplotlib
+# Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__, template_folder='frontend/templates')
