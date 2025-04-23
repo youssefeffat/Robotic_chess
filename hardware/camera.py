@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from core.interfaces import ICameraModule
 import cv2
 import numpy as np
@@ -9,6 +12,7 @@ from core.interfaces import ICameraModule
 
 #Installation à faire :
 #     sudo apt-get install qtwayland5
+#     pip install opencv-python
 
 class Camera(ICameraModule):
     def __init__(self):
@@ -50,9 +54,9 @@ class Camera(ICameraModule):
         print("Camera closed.")
 
 class ChessboardDetector:
-    def __init__(self, image_path):
+    def __init__(self, image_path = None):
         self.image_path = image_path
-        self.image = cv2.imread(image_path)
+        self.image = cv2.imread(image_path) if image_path else None
         self.board_size = 400
         self.square_size = self.board_size // 8
         self.countours_size = 0 # Taille du contour autour du carré 
@@ -94,13 +98,13 @@ class ChessboardDetector:
         gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         self.blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
         cv2.imshow("Step 1: Grayscale & Blurring", self.blurred_image)
-        cv2.waitKey(1000)
+        cv2.waitKey(500)
         return self.blurred_image
 
     def detect_edges(self):
         self.edges = cv2.Canny(self.blurred_image, 50, 150)
         cv2.imshow("Step 2: Edge Detection", self.edges)
-        cv2.waitKey(1000)
+        cv2.waitKey(500)
         return self.edges
 
     def find_chessboard_contour(self):
@@ -146,16 +150,24 @@ class ChessboardDetector:
             # Fit a quadrilateral if the contour does not have exactly 4 corners
             rect = cv2.minAreaRect(largest_contour)
             box = cv2.boxPoints(rect)
-            box = np.int0(box)
+            box = np.int0(box).reshape((4, 2))
+
+            # Convert box to the format compatible with order_points
+            approx = np.array([[point] for point in box], dtype="float32")
 
             # Visualize the fitted quadrilateral
             cv2.drawContours(contour_image, [box], -1, (0, 0, 255), 2)
             cv2.imshow("Step 3: Fitted Quadrilateral", contour_image)
             cv2.waitKey(1000)
 
-            return box
+            return approx
 
     def apply_perspective_transform(self, approx):
+        if approx is None or len(approx) != 4:
+            raise ValueError("Error: Invalid contour approximation. Expected 4 points.")
+
+        # Extract points and ensure they are in the correct format
+    
         pts = np.array([p[0] for p in approx], dtype="float32")
         ordered_pts = self.order_points(pts)
         dst_pts = np.array([
@@ -254,6 +266,25 @@ class ChessboardDetector:
         image = cv2.imread(image_path)
         if image is None:
             raise ValueError("Error: Image not loaded. Please check the image path.")
+        hsv_ranges = self.calibration_from_image(image)
+        return hsv_ranges
+    
+    def calibration_from_image(self, image):
+        """
+        Calibrate the HSV color ranges for each type of chess piece and empty squares (black and white)
+        based on a reference image. The reference image must have the chess pieces in their initial positions.
+
+        Parameters:
+            image (str): image from cv2.imread.
+
+        Returns:
+            dict: A dictionary containing the HSV ranges for each piece type and empty squares.
+        """
+        print("Calibrating HSV ranges...")
+        # Load the image
+        
+        if image is None:
+            raise ValueError("Error: Image not loaded. Please check the image path.")
 
         # Define the initial positions of the pieces on the chessboard
         initial_positions = {
@@ -274,13 +305,14 @@ class ChessboardDetector:
         }
 
         # Perspective transform to align the chessboard
-        detector = ChessboardDetector(image_path)
-        detector.preprocess_image()
-        detector.detect_edges()
-        approx = detector.find_chessboard_contour()
+        self.image = image
+        self.preprocess_image()
+        self.detect_edges()
+        approx = self.find_chessboard_contour()
         if approx is None:
-            raise ValueError("Error: Chessboard contour not detected.")
-        warped_image = detector.apply_perspective_transform(approx)
+            # raise ValueError("Error: Chessboard contour not detected.")
+            return None
+        warped_image = self.apply_perspective_transform(approx)
 
         # Convert the warped image to HSV
         hsv_image = cv2.cvtColor(warped_image, cv2.COLOR_BGR2HSV)
@@ -406,29 +438,30 @@ class ChessboardDetector:
             cv2.destroyAllWindows()
         return fen_string
 
-    @classmethod
-    def generate_fen_from_frame(cls, frame, show_intermediate=True):
+    # @classmethod
+    def generate_fen_from_frame(self, frame, show_intermediate=True):
+        # detector = cls.__new__(cls)
+        self.image = frame
+        return self.process_image(show_intermediate)
+    
+    
+        
 
-        detector = cls.__new__(cls)
-        detector.image = frame
-        detector.board_size = 400
-        detector.square_size = detector.board_size // 8
-        detector.piece_detected = [["." for _ in range(8)] for _ in range(8)]
-        # Set HSV color ranges.
-        detector.red_lower = np.array([0, 150, 50])
-        detector.red_upper = np.array([10, 255, 255])
-        detector.blue_lower = np.array([100, 150, 50])
-        detector.blue_upper = np.array([120, 255, 255])
-        detector.green_lower = np.array([40, 150, 50])
-        detector.green_upper = np.array([75, 255, 255])
-        detector.orange_lower = np.array([10, 150, 50])
-        detector.orange_upper = np.array([20, 255, 255])
-        detector.magenta_lower = np.array([140, 150, 50])
-        detector.magenta_upper = np.array([170, 255, 255])
-        detector.cyan_lower = np.array([75, 150, 50])
-        detector.cyan_upper = np.array([100, 255, 255])
-        return detector.process_image(show_intermediate)
+class GetCharacter():
+    def __init__(self):
+        self.key = None
+        self.flag = False
+    
+    def loop(self):
+        while True:
+            self.key = input("Press 'c' to capture a photo and process it, or 'q' to quit: ")
+            self.flag = True
 
+    def startThread(self):
+        import threading
+        threading.Thread(target=self.loop).start()
+    
+    
 
 def testCamera():
     cap = cv2.VideoCapture(0)
@@ -436,8 +469,18 @@ def testCamera():
         print("Error: Could not open camera.")
         exit()
 
-    print("Press 'space' to capture a photo and process it, or 'q' to quit.")
+    # print("Press 'space' to capture a photo and process it, or 'q' to quit.")
 
+    char = GetCharacter()
+    char.startThread()
+
+    chs = ChessboardDetector()
+
+    from api.stockfish_api import StockfishEngine
+    stockfish = StockfishEngine()
+    stockfish.stockfish.set_fen_position(stockfish.stockfish.get_fen_position())
+    print(stockfish.stockfish.get_board_visual())
+    print(stockfish.stockfish.get_fen_position())
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -445,14 +488,23 @@ def testCamera():
             break
 
         cv2.imshow("Chessboard Capture", frame)
-        key = cv2.waitKey(1) & 0xFF
+        cv2.waitKey(1)
 
-        if key == ord('q'):
-            break
-        elif key == ord(' '):
-            print("Capturing and processing frame...")
-            fen_string = ChessboardDetector.generate_fen_from_frame(frame, show_intermediate=False)
-            print("Detected FEN:", fen_string)
+        if char.flag:
+            char.flag = False
+            if char.key == ('q'):
+                break
+            elif char.key == ('c'):
+                chs.calibration_from_image(frame)
+            elif char.key == (' '):
+                print("Capturing and processing frame...")
+                fen_string = chs.generate_fen_from_frame(frame, show_intermediate=False)
+                print("Detected FEN:", fen_string)
+                # stockfish.stockfish.set_fen_position(fen_string)
+                print(stockfish.stockfish.get_board_visual())
+                print(stockfish.stockfish.get_fen_position())
+            else:
+                print(char.key)
 
     cap.release()
     cv2.destroyAllWindows()
@@ -488,5 +540,5 @@ def testImage(image_path, image_path2=None):
         print("Chessboard contour not detected.")
 
 if __name__ == "__main__":
-    testImage("/home/anas/Documents/Python/Robotic_chess/hardware/images/image2.png", "/home/anas/Documents/Python/Robotic_chess/hardware/images/image3.png")
+    #testImage("images/image2.png")
     testCamera()

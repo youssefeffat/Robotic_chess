@@ -8,13 +8,12 @@ import threading
 # Installation à faire : 
 #     pip install flask
 #     pip install dotenv
-#     sudo apt-get install stockfish
+#     pip install stockfish
 #     pip install numpy matplotlib
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__, template_folder='frontend/templates')
-
 
 @app.route('/')
 def index():
