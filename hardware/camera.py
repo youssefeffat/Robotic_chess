@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from core.interfaces import ICameraModule
 import cv2
 import numpy as np
@@ -8,10 +5,10 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from core.interfaces import ICameraModule
+import threading
 # export PYTHONPATH=/home/anas/Documents/Python/Robotic_chess:$PYTHONPATH 
 
 #Installation à faire :
-#     sudo apt-get install qtwayland5
 #     pip install opencv-python
 
 class Camera(ICameraModule):
@@ -21,7 +18,65 @@ class Camera(ICameraModule):
         This is a placeholder implementation.
         The actual implementation will involve image processing and FEN generation.
         """
-        self.test = None  
+        self.chs = ChessboardDetector()
+        
+        self.camera = None #= cv2.VideoCapture(0)
+        
+        self.calibrate_camera = False
+        
+        self.fen_string = ""
+        
+        self.thread = None
+        self.running = False
+        
+    def _startThread(self):
+        """
+        Start the camera module in a separate thread.
+        """
+        self.running = True
+        self.thread = threading.Thread(target=self._loop, daemon=True)
+        self.thread.start()
+    
+    def _loop(self):
+        """
+        Main loop for the camera module that is in a thread.
+        This function captures images from the camera and processes them to generate FEN strings.
+        """
+        while self.running:
+            ret, frame = self.camera.read()
+            if not ret:
+                print("Error: Could not read frame.")
+
+            cv2.imshow("Chessboard Capture", frame)
+            
+            if self.calibrate_camera:
+                self.chs.calibration_from_image(frame, True)# We calibrate the color of the pieces
+                #Then with the same frame we detect the pieces
+                # We should obtain the basic FEN string, if not it indicates that the camera is not well positioned
+                self.chs.image = frame
+                self.chs.preprocess_image(True)
+                self.chs.detect_edges(True)
+                approx = self.chs.find_chessboard_contour(True)
+                if approx is not None:
+                    self.chs.apply_perspective_transform(approx, True)
+                    self.chs.detect_pieces()
+                    fen_string = self.chs.generate_fen()
+                if(approx is None or fen_string != "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"):
+                    print("Calibration failed. Please adjust the camera position.")
+                self.fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" # Basic FEN for calibration
+            else:
+                # fen_string = chs.generate_fen_from_frame(frame)
+                self.chs.image = frame
+                self.chs.preprocess_image(True)
+                self.chs.detect_edges(True)
+                approx = self.chs.find_chessboard_contour(True)
+                if approx is not None:
+                    self.chs.apply_perspective_transform(approx, True)
+                    self.chs.detect_pieces()
+                    self.fen_string = self.chs.generate_fen()
+                    # print("Detected FEN:", fen_string)
+                
+            cv2.waitKey(1)
 
     def initialize_camera(self) -> None:
         """
@@ -29,6 +84,12 @@ class Camera(ICameraModule):
         This function sets up the camera hardware and prepares it for capturing images.
         """
         print("Camera module initialized.")
+        self.camera = cv2.VideoCapture(0)
+        if not self.camera.isOpened():
+            print("Error: Could not open camera.")
+            exit()
+        print("Camera opened successfully.")
+        self._startThread()
 
     def get_fen(self) -> str:
         """
@@ -44,7 +105,8 @@ class Camera(ICameraModule):
         print("Capturing chessboard state...")
 
         # Placeholder: Simulate FEN generation
-        return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        # return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+        return self.fen_string
 
     def shutdown(self) -> None:
         """
@@ -52,8 +114,28 @@ class Camera(ICameraModule):
         This function should be called during cleanup to release resources.
         """
         print("Camera closed.")
+        self.running = False
+        if self.thread is not None:
+            self.thread.join()
+        if self.camera is not None:
+            self.camera.release()
+        cv2.destroyAllWindows()
+    
+    def set_calibration_mode(self, mode: bool) -> None:
+        """
+        Set the camera module to calibration mode.
+        In this mode, the camera captures images for calibration purposes.
+        Must be activated then deactivated.
+        Parameters:
+            mode (bool): True to set calibration mode, False to set normal mode.
+        """
+        self.calibrate_camera = mode
+        if mode:
+            print("Camera module set to calibration mode.")
+        else:
+            print("Camera module set to normal mode.")
 
-class ChessboardDetector:
+class ChessboardDetector():
     def __init__(self, image_path = None):
         self.image_path = image_path
         self.image = cv2.imread(image_path) if image_path else None
@@ -75,6 +157,7 @@ class ChessboardDetector:
         self.orange_upper = np.array([20, 255, 255])
 
         self.magenta_lower = np.array([140, 150, 50])
+        self.cyan_upper = np.array([100, 255, 255])
         self.magenta_upper = np.array([170, 255, 255])
 
         self.cyan_lower = np.array([75, 150, 50])
@@ -92,22 +175,24 @@ class ChessboardDetector:
         rect[3] = pts[np.argmax(diff)]
         return rect
 
-    def preprocess_image(self):
+    def preprocess_image(self, affiche=False):
         if self.image is None:
             raise ValueError("Error: Image not loaded. Please check the image path or input frame.")
         gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         self.blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
-        cv2.imshow("Step 1: Grayscale & Blurring", self.blurred_image)
-        cv2.waitKey(500)
+        if affiche:
+            cv2.imshow("Step 1: Grayscale & Blurring", self.blurred_image)
+            cv2.waitKey(1)
         return self.blurred_image
 
-    def detect_edges(self):
+    def detect_edges(self, affiche=False):
         self.edges = cv2.Canny(self.blurred_image, 50, 150)
-        cv2.imshow("Step 2: Edge Detection", self.edges)
-        cv2.waitKey(500)
+        if affiche:
+            cv2.imshow("Step 2: Edge Detection", self.edges)
+            cv2.waitKey(1)
         return self.edges
 
-    def find_chessboard_contour(self):
+    def find_chessboard_contour(self, affiche=False):
         """
         Find the contour of the chessboard in the image, even if the shape is not perfectly square
         or if the edges are not continuous.
@@ -136,12 +221,13 @@ class ChessboardDetector:
         # Visualize the detected contour
         contour_image = self.image.copy()
         cv2.drawContours(contour_image, [largest_contour], -1, (0, 255, 0), 3)
-        cv2.imshow("Step 3: Chessboard Contour", contour_image)
-        cv2.waitKey(1000)
+        if(affiche):
+            cv2.imshow("Step 3: Chessboard Contour", contour_image)
+            cv2.waitKey(1)
 
         # Ensure the approximated polygon has exactly 4 corners
         if len(approx) == 4:
-            print("Chessboard contour detected successfully.")
+            # print("Chessboard contour detected successfully.")
             return approx
         else:
             print(f"Detected contour does not have 4 corners (found {len(approx)} corners).")
@@ -157,12 +243,13 @@ class ChessboardDetector:
 
             # Visualize the fitted quadrilateral
             cv2.drawContours(contour_image, [box], -1, (0, 0, 255), 2)
-            cv2.imshow("Step 3: Fitted Quadrilateral", contour_image)
-            cv2.waitKey(1000)
+            if affiche:
+                cv2.imshow("Step 3: Fitted Quadrilateral", contour_image)
+                cv2.waitKey(1)
 
             return approx
 
-    def apply_perspective_transform(self, approx):
+    def apply_perspective_transform(self, approx, affiche=False):
         if approx is None or len(approx) != 4:
             raise ValueError("Error: Invalid contour approximation. Expected 4 points.")
 
@@ -178,12 +265,13 @@ class ChessboardDetector:
         ], dtype="float32")
         matrix = cv2.getPerspectiveTransform(ordered_pts, dst_pts)
         self.warped_image = cv2.warpPerspective(self.image, matrix, (self.board_size, self.board_size))
-        cv2.imshow("Step 4: Perspective Transform", self.warped_image)
-        cv2.waitKey(1000)
-        self.draw_grid(self.warped_image)
+        if affiche:
+            cv2.imshow("Step 4: Perspective Transform", self.warped_image)
+            cv2.waitKey(1)
+        self.draw_grid(self.warped_image, affiche)
         return self.warped_image
 
-    def draw_grid(self, image):
+    def draw_grid(self, image, affiche=False):
         grid_image = image.copy()
         for row in range(8):
             for col in range(8):
@@ -192,8 +280,9 @@ class ChessboardDetector:
                 square_name = f"{chr(97 + col)}{8 - row}"
                 cv2.putText(grid_image, square_name, (x + 5, y + 20),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        cv2.imshow("Step 5: Chessboard Grid", grid_image)
-        cv2.waitKey(1000)
+        if affiche:
+            cv2.imshow("Step 5: Chessboard Grid", grid_image)
+            cv2.waitKey(1)
 
     # def detect_pieces(self):
     #     threshold = 0
@@ -261,7 +350,7 @@ class ChessboardDetector:
         Returns:
             dict: A dictionary containing the HSV ranges for each piece type and empty squares.
         """
-        print("Calibrating HSV ranges...")
+        # print("Calibrating HSV ranges...")
         # Load the image
         image = cv2.imread(image_path)
         if image is None:
@@ -269,7 +358,7 @@ class ChessboardDetector:
         hsv_ranges = self.calibration_from_image(image)
         return hsv_ranges
     
-    def calibration_from_image(self, image):
+    def calibration_from_image(self, image, affiche=False):
         """
         Calibrate the HSV color ranges for each type of chess piece and empty squares (black and white)
         based on a reference image. The reference image must have the chess pieces in their initial positions.
@@ -280,7 +369,7 @@ class ChessboardDetector:
         Returns:
             dict: A dictionary containing the HSV ranges for each piece type and empty squares.
         """
-        print("Calibrating HSV ranges...")
+        # print("Calibrating HSV ranges...")
         # Load the image
         
         if image is None:
@@ -306,13 +395,13 @@ class ChessboardDetector:
 
         # Perspective transform to align the chessboard
         self.image = image
-        self.preprocess_image()
-        self.detect_edges()
-        approx = self.find_chessboard_contour()
+        self.preprocess_image(affiche)
+        self.detect_edges(affiche)
+        approx = self.find_chessboard_contour(affiche)
         if approx is None:
             # raise ValueError("Error: Chessboard contour not detected.")
             return None
-        warped_image = self.apply_perspective_transform(approx)
+        warped_image = self.apply_perspective_transform(approx, affiche)
 
         # Convert the warped image to HSV
         hsv_image = cv2.cvtColor(warped_image, cv2.COLOR_BGR2HSV)
@@ -345,7 +434,7 @@ class ChessboardDetector:
                 # hsv_mean = cv2.mean(smoothed_square)[:3]  # Get the mean HSV values
                 hsv_mean = cv2.mean(center_square)[:3]  # Get the mean HSV values
                 hsv_values.append(hsv_mean)
-                print(f"Calibrating {piece}... {positions} hsv_values : {hsv_values}")
+                # print(f"Calibrating {piece}... {positions} hsv_values : {hsv_values}")
 
             # Calculate the HSV range for the piece or empty square
             h_values = [hsv[0] for hsv in hsv_values]
@@ -362,17 +451,18 @@ class ChessboardDetector:
             }
 
         # Print the calibrated HSV ranges
-        for piece, ranges in hsv_ranges.items():
-            print(f"{piece}: Lower={ranges['lower']}, Upper={ranges['upper']}")
+        # for piece, ranges in hsv_ranges.items():
+        #     print(f"{piece}: Lower={ranges['lower']}, Upper={ranges['upper']}")
 
         self.hsv_ranges = hsv_ranges
         print("Calibration complete.")
-        self.draw_grid(warped_image)
+        self.draw_grid(warped_image, affiche)
         return hsv_ranges
     
     def detect_pieces(self, affiche=False):
         if not self.hsv_ranges:
-            raise ValueError("Error: HSV ranges not calibrated. Please run the calibration method first.")
+            print("Error: HSV ranges not calibrated. Please run the calibration method first.")
+            return None
 
         for row in range(8):
             for col in range(8):
@@ -398,12 +488,12 @@ class ChessboardDetector:
                 if best_piece:
                     self.piece_detected[row][col] = best_piece
                     if affiche:
-                        print(f"Detected {best_piece} at {chr(97 + col)}{8 - row} with coverage: {best_coverage:.2f}")
+                        # print(f"Detected {best_piece} at {chr(97 + col)}{8 - row} with coverage: {best_coverage:.2f}")
                         cv2.imshow(f"Square {chr(97 + col)}{8 - row}", hsv_square)
-                        cv2.waitKey(100)
+                        cv2.waitKey(1)
         
-        if affiche:
-            cv2.destroyAllWindows()
+        # if affiche:
+        #     cv2.destroyAllWindows()
         return self.piece_detected
 
     def generate_fen(self):
@@ -445,25 +535,21 @@ class ChessboardDetector:
         return self.process_image(show_intermediate)
     
     
-        
-
-class GetCharacter():
-    def __init__(self):
-        self.key = None
-        self.flag = False
-    
-    def loop(self):
-        while True:
-            self.key = input("Press 'c' to capture a photo and process it, or 'q' to quit: ")
-            self.flag = True
-
-    def startThread(self):
-        import threading
-        threading.Thread(target=self.loop).start()
-    
-    
 
 def testCamera():
+    class GetCharacter():
+        def __init__(self):
+            self.key = None
+            self.flag = False
+        
+        def loop(self):
+            while True:
+                self.key = input("Press 'c' to capture a photo and process it, or 'q' to quit: ")
+                self.flag = True
+
+        def startThread(self):
+            threading.Thread(target=self.loop).start()
+        
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Error: Could not open camera.")
@@ -481,6 +567,7 @@ def testCamera():
     stockfish.stockfish.set_fen_position(stockfish.stockfish.get_fen_position())
     print(stockfish.stockfish.get_board_visual())
     print(stockfish.stockfish.get_fen_position())
+    
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -494,15 +581,25 @@ def testCamera():
             char.flag = False
             if char.key == ('q'):
                 break
-            elif char.key == ('c'):
-                chs.calibration_from_image(frame)
+            elif char.key == ('m'):
+                chs.calibration_from_image(frame, True)
             elif char.key == (' '):
                 print("Capturing and processing frame...")
-                fen_string = chs.generate_fen_from_frame(frame, show_intermediate=False)
-                print("Detected FEN:", fen_string)
-                # stockfish.stockfish.set_fen_position(fen_string)
-                print(stockfish.stockfish.get_board_visual())
-                print(stockfish.stockfish.get_fen_position())
+                # fen_string = chs.generate_fen_from_frame(frame)
+                chs.image = frame
+                chs.preprocess_image(True)
+                chs.detect_edges(True)
+                approx = chs.find_chessboard_contour(True)
+                if approx is not None:
+                    chs.apply_perspective_transform(approx, True)
+                    chs.detect_pieces()
+                    fen_string = chs.generate_fen()
+                    print("Detected FEN:", fen_string)
+                    # stockfish = StockfishEngine()
+                    # stockfish.stockfish.set_fen_position(fen_string)
+                    # print(stockfish.stockfish.get_fen_position())
+                    # print(stockfish.stockfish.get_board_visual())
+                    
             else:
                 print(char.key)
 
@@ -514,16 +611,22 @@ def testImage(image_path, image_path2=None):
         image_path2 = image_path
     detector = ChessboardDetector(image_path2)
     detector.countours_size = 0
+    # cv2.imshow("Image 1", cv2.imread(image_path))
+    # cv2.imshow("Image 2", cv2.imread(image_path2))
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     
-    hsv_image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2HSV)
-    cv2.imshow("HSV Image", hsv_image)
+    # hsv_image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2HSV)
+    # cv2.imshow("HSV Image", hsv_image)
     
     detector.calibration(image_path)
-    detector.preprocess_image()
+    
+    detector.image = cv2.imread(image_path2)
+    detector.preprocess_image(True)
     detector.detect_edges()
-    approx = detector.find_chessboard_contour()
+    approx = detector.find_chessboard_contour(True)
     if approx is not None:
-        detector.apply_perspective_transform(approx)
+        detector.apply_perspective_transform(approx, True)
         detector.detect_pieces(True)
         fen_string = detector.generate_fen()
         print("Detected FEN:", fen_string)
@@ -539,6 +642,50 @@ def testImage(image_path, image_path2=None):
     else:
         print("Chessboard contour not detected.")
 
+def testMainClass():
+    class GetCharacter():
+        def __init__(self):
+            self.key = None
+            self.flag = False
+        
+        def loop(self):
+            while True:
+                self.key = input("Press 'c' to capture a photo and process it, or 'q' to quit: ")
+                self.flag = True
+
+        def startThread(self):
+            threading.Thread(target=self.loop).start()
+            
+    camera = Camera()
+    # camera.initialize_camera()
+    # camera.set_calibration_mode(True)
+    # camera.get_fen()
+    # camera.set_calibration_mode(False)
+    # camera.get_fen()
+    # camera.shutdown()
+    char = GetCharacter()
+    char.startThread()
+    
+    while True:
+        if char.flag:
+            char.flag = False
+            if char.key == ('i'):
+                camera.initialize_camera()
+            elif char.key == ('c'):
+                print("Camera is now in calibration mode")
+                camera.set_calibration_mode(True)
+            elif char.key == ('v'):
+                print("Camera is now in normal mode")
+                camera.set_calibration_mode(False)
+            elif char.key == ('f'):
+                fen_string = camera.get_fen()  
+                print("Detected FEN:", fen_string)
+            elif char.key == ('q'):
+                camera.shutdown()
+                break
+
+
 if __name__ == "__main__":
-    #testImage("images/image2.png")
-    testCamera()
+    # testImage("/home/anas/Documents/Python/Robotic_chess/hardware/images/image2.png", "/home/anas/Documents/Python/Robotic_chess/hardware/images/image3.png")
+    # testCamera()
+    testMainClass()
