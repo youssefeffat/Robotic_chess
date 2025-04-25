@@ -88,6 +88,10 @@ class Camera(ICameraModule):
                     
                     if self.buffer_fen_string[0] == self.buffer_fen_string[1]:# filtre pour eviter les faux positifs
                         self.fen_string = self.buffer_fen_string[0]
+                        self.buffer_fen_string_index = (self.buffer_fen_string_index + 1) % 2
+                    elif self.buffer_fen_string_index == 0:
+                        self.buffer_fen_string[0] = self.buffer_fen_string[1]
+                        self.buffer_fen_string_index = (self.buffer_fen_string_index + 1) % 2
                     # print("Detected FEN:", fen_string)
                 
             cv2.waitKey(1)
