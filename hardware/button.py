@@ -3,14 +3,13 @@ import time
 from hardware.robotic_arm import *  # Adjusted the import path to match the project structure
 
 class Button(IButtonModule):
-    def __init__(self, robotic_arm : RoboticArm):
+    def __init__(self):
         """
         Initialize the Button class.
         This is a placeholder implementation.
         The actual implementation will involve hardware interaction.
         """
-        self.is_initialized = False  
-        self.robotic_arm = robotic_arm
+        self.is_initialized = False
 
     def initialize_button(self) -> bool:
         """
@@ -21,15 +20,6 @@ class Button(IButtonModule):
             - Returns True if initialization succeeds, False otherwise.
         """
         print("Initializing button module...")
-        try:
-            self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
-            self.is_initialized = True
-            print("Button module initialized successfully.")
-            return True
-        except Exception as e:
-            print(f"Error initializing button module: {e}")
-            self.is_initialized = False
-            return False
 
     def human_turn_finished(self) -> bool:
         """
@@ -45,17 +35,13 @@ class Button(IButtonModule):
         """
         print("Waiting for the button press...")
         
-        timeout = 5  
+        timeout = 5
         start_time = time.time()
-        start_time_request = time.time()
         while not self.button_pressed():
             # Check for timeout
             if time.time() - start_time > timeout:
                 print("Error: Button press not detected within the timeout period. Possible hardware issue.")
                 return False
-            elif (time.time() - start_time_request) > 1:
-                start_time_request = time.time()
-                self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
         print("Button pressed! Human turn finished.")
         return True
 
@@ -71,7 +57,8 @@ class Button(IButtonModule):
         ##
         ##                       CODE
         ##
-        return self.robotic_arm.button_state
+        key = input("Human, press enter when you finished...")
+        return True
 
     def shutdown(self) -> None:
         """

@@ -168,7 +168,7 @@ class RoboticArm(IRoboticArmModule):
         Initialize the robotic arm module.
         This function sets up the robotic arm hardware (e.g., motors, servos).
         """
-        self._start_serial(afficherPortDisponible()) # Start the serial communication
+        self._start_serial("/dev/ttyUSB0") # Start the serial communication
         print("Robotic arm initialized.")
         self._start_loop()  # Start the loop thread
         self.is_initialized = True
