@@ -12,29 +12,29 @@ class RoboticArm(IRoboticArmModule):
         This is a placeholder implementation.
         The actual implementation will involve controlling the robotic arm hardware.
         """
-        self.is_initialized = False 
+        # # self.is_initialized = False 
 
-        self.com = SerialCommunication()
+        # self.com = SerialCommunication()
 
-        self.loop_thread = None  # Thread for the loop function
-        self.running = False     # Flag to control the loop execution
+        # # self.loop_thread = None  # Thread for the loop function
+        # # self.running = False     # Flag to control the loop execution
         
-        self.current_pos = Position(0,0,0)
+        # # self.current_pos = Position(0,0,0)
         
-        self.chessboard_moves = ChessboardMoves()
-        self.state_chessboard_manager = 0
-        self.last_move = "" #le dernier move fait par exemple "e2e4"
+        # self.chessboard_moves = ChessboardMoves()
+        # self.state_chessboard_manager = 0
+        # self.last_move = "" #le dernier move fait par exemple "e2e4"
         
         self.button_state = False #On va l'utiliser pour savoir si le bouton est appuyé ou pas, si 1 c'est qu'il est appuyé, sinon c'est 0
 
-    def _start_serial(self, selected_port):
-        if selected_port:
-            try:
-                self.com = SerialCommunication(selected_port, SERIAL_BAUDRATE)
-                self.com.start()
-                print("Starting serial self.com ", selected_port)
-            except serial.SerialException as e:
-                print("Serial Error", f"Failed to open port {selected_port}: {e}")
+    # def _start_serial(self, selected_port):
+    #     if selected_port:
+    #         try:
+    #             self.com = SerialCommunication(selected_port, SERIAL_BAUDRATE)
+    #             self.com.start()
+    #             print("Starting serial self.com ", selected_port)
+    #         except serial.SerialException as e:
+    #             print("Serial Error", f"Failed to open port {selected_port}: {e}")
                 
     def _start_loop(self):
         """
@@ -125,11 +125,11 @@ class RoboticArm(IRoboticArmModule):
             # self.sendMoveAndWait(self.current_pos)#On s'assure d'etre deja en l'air avant de bouger
             
             
-            start_pos.z = HAUTEUR_BRAS
-            self.sendMoveAndWait(start_pos)#On va au dessus de la piece
-            
-            start_pos.z = 0
-            self.sendMoveAndWait(start_pos)#On descend à la piece
+        start_pos.z = HAUTEUR_BRAS
+        self.sendMoveAndWait(start_pos)#On va au dessus de la piece
+        
+        start_pos.z = 0
+        self.sendMoveAndWait(start_pos)#On descend à la piece
             
             self.com.sendGrabPiece(True)#On attrape la piece
             
@@ -168,10 +168,11 @@ class RoboticArm(IRoboticArmModule):
         Initialize the robotic arm module.
         This function sets up the robotic arm hardware (e.g., motors, servos).
         """
-        self._start_serial(afficherPortDisponible()) # Start the serial communication
-        print("Robotic arm initialized.")
-        self._start_loop()  # Start the loop thread
-        self.is_initialized = True
+        # self._start_serial(afficherPortDisponible()) # Start the serial communication
+        # print("Robotic arm initialized.")
+        # self._start_loop()  # Start the loop thread
+        # self.is_initialized = True
+        time.sleep(1) 
 
     def execute_move(self, move: str) -> None:
         """
@@ -186,20 +187,22 @@ class RoboticArm(IRoboticArmModule):
         Outputs:
             - None (executes the move physically).
         """
-        if not self.is_initialized:
-            raise RuntimeError("Robotic arm is not initialized. Call initialize_robot() first.")
-        print(f"Executing move: {move}")
-        self.chessboard_moves.addMoves(move)
-        self.chessboard_moves.waitForMoveToFinish() # Bloque jusqu'à ce que le move soit fini
-        print(f"Move {move} executed.")
+        # if not self.is_initialized:
+        #     raise RuntimeError("Robotic arm is not initialized. Call initialize_robot() first.")
+        # print(f"Executing move: {move}")
+        # self.chessboard_moves.addMoves(move)
+        # self.chessboard_moves.waitForMoveToFinish() # Bloque jusqu'à ce que le move soit fini
+        # print(f"Move {move} executed.")
+        time.sleep(5) 
 
     def shutdown(self) -> None:
         """
         Shut down the robotic arm and clean up resources.
         """
-        self._stop_loop()  # Stop the loop thread
-        print("Robotic arm shut down.")
-        self.is_initialized = False
+        # self._stop_loop()  # Stop the loop thread
+        # print("Robotic arm shut down.")
+        # self.is_initialized = False
+        time.sleep(1) 
     
     def get_current_position(self) -> str:
         """

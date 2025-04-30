@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, redirect, request, render_template, jsonify
 from api.UserInterface import UserInterface
 from game.game_manager import GameManager
 from dotenv import load_dotenv
