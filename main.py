@@ -26,24 +26,21 @@ def start_game():
         color = data.get('color', 'white').lower()
         difficulty = int(data.get('difficulty', 10))
 
-        # Validate input
-        if mode not in ['human_vs_bot', 'bot_vs_bot']:
-            return jsonify({"error": "Invalid mode"}), 400
-        if color not in ['white', 'black']:
-            return jsonify({"error": "Invalid color"}), 400
-        if not (1 <= difficulty <= 20):
-            return jsonify({"error": "Difficulty must be 1-20"}), 400
+    if mode not in ['human_vs_bot', 'bot_vs_bot'] or color not in ['white', 'black'] or difficulty < 1 or difficulty > 20:
+        return jsonify({"error": "Invalid input"}), 400
+    
+    user_interface = UserInterface()
+    game_engine = GameEngine(user_interface)
+    
+    game_engine.initialize_game(mode=mode, color=color, difficulty=difficulty)
+    
+    session_url = user_interface.create_game()
+    game_engine.start_game()
 
-        # Initialize game components
-        user_interface = UserInterface()
-        game_manager = GameManager(user_interface)
+    # TODO : redirection to the session_url
+    
 
-        # Generate session URL
-        game_manager.initialize_game(mode=mode, color=color, difficulty=difficulty)
-        session_url = user_interface.create_game("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq")
-
-        # Start game in a background thread
-        threading.Thread(target=game_manager.start_game).start()
+    threading.Thread(target=game_engine.start_game).start()
 
         # Return session URL to frontend
         return jsonify({

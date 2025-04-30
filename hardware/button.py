@@ -60,7 +60,7 @@ class Button(IButtonModule):
         #         self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
         # print("Button pressed! Human turn finished.")
         # return True
-        time.sleep(1)  # Simulate waiting for button press
+        time.sleep(10)  # Simulate waiting for button press
 
     def button_pressed(self) -> bool:
         """

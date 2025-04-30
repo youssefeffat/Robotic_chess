@@ -64,6 +64,20 @@ class StockfishEngine():
 
         return False  # Game is not over
     
+    def get_fen_after_move(self, fen: str, move: str) -> str:
+        """
+        Get the FEN string after making a move.
+        :return: Current board state in FEN format.
+        """
+
+        if not self.initialized:
+            raise RuntimeError("Stockfish engine is not initialized. Call initialize_engine() first.")
+        self.stockfish.set_fen_position(fen)
+        self.stockfish.make_moves_from_current_position([move])
+        # Get the FEN string after making the move
+        return self.stockfish.get_fen_position()
+    
+    
 if __name__ == "__main__":
     engine = StockfishEngine()
     engine.initialize_engine(difficulty=5)
