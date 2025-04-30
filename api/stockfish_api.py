@@ -84,6 +84,8 @@ if __name__ == "__main__":
     
     # Initial board state
     fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    # fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+
     print("Initial board state:")
     print(engine.stockfish.get_board_visual(fen))
     
