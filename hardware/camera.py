@@ -184,7 +184,10 @@ class Camera:
         cv2.destroyAllWindows()
         # on crée un détecteur avec debug à False (ou True si nécessaire)
         detector = cls(debug=True)
-        return detector.generate_fen_from_frame(frame, show_intermediate=True)
+        fen = detector.generate_fen_from_frame(frame, show_intermediate=True)
+        #fen = "8/8/8/8/3p4/8/8/1K6"
+        print(fen)
+        return fen
 
     def shutdown(self) -> None:
         """
