@@ -1,6 +1,6 @@
 from core.interfaces import IButtonModule
 import time
-from robotic_arm import *
+from hardware.robotic_arm import RoboticArm
 
 class Button(IButtonModule):
     def __init__(self, robotic_arm : RoboticArm):
@@ -20,44 +20,46 @@ class Button(IButtonModule):
         Outputs:
             - Returns True if initialization succeeds, False otherwise.
         """
-        print("Initializing button module...")
-        try:
-            self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
-            self.is_initialized = True
-            print("Button module initialized successfully.")
-            return True
-        except Exception as e:
-            print(f"Error initializing button module: {e}")
-            self.is_initialized = False
-            return False
+        # print("Initializing button module...")
+        # try:
+        #     self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
+        #     self.is_initialized = True
+        #     print("Button module initialized successfully.")
+        #     return True
+        # except Exception as e:
+        #     print(f"Error initializing button module: {e}")
+        #     self.is_initialized = False
+        #     return False
+        time.sleep(5) 
 
     def human_turn_finished(self) -> bool:
-        """
-        Blocking function.
-        Block until the human player's turn is finished or a hardware issue is detected.
-        Expected Behavior:
-            - Wait for the button to be pressed.
-            - If the button is pressed, finish execution.
-            - If a hardware issue is detected, inform the user and return False.
+        # """
+        # Blocking function.
+        # Block until the human player's turn is finished or a hardware issue is detected.
+        # Expected Behavior:
+        #     - Wait for the button to be pressed.
+        #     - If the button is pressed, finish execution.
+        #     - If a hardware issue is detected, inform the user and return False.
 
-        Outputs:
-            - Returns True if the button was pressed successfully, False if a hardware issue occurs.
-        """
-        print("Waiting for the button press...")
+        # Outputs:
+        #     - Returns True if the button was pressed successfully, False if a hardware issue occurs.
+        # """
+        # print("Waiting for the button press...")
         
-        timeout = 300  
-        start_time = time.time()
-        start_time_request = time.time()
-        while not self.button_pressed():
-            # Check for timeout
-            if time.time() - start_time > timeout:
-                print("Error: Button press not detected within the timeout period. Possible hardware issue.")
-                return False
-            elif (time.time() - start_time_request) > 1:
-                start_time_request = time.time()
-                self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
-        print("Button pressed! Human turn finished.")
-        return True
+        # timeout = 300  
+        # start_time = time.time()
+        # start_time_request = time.time()
+        # while not self.button_pressed():
+        #     # Check for timeout
+        #     if time.time() - start_time > timeout:
+        #         print("Error: Button press not detected within the timeout period. Possible hardware issue.")
+        #         return False
+        #     elif (time.time() - start_time_request) > 1:
+        #         start_time_request = time.time()
+        #         self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
+        # print("Button pressed! Human turn finished.")
+        # return True
+        time.sleep(1)  # Simulate waiting for button press
 
     def button_pressed(self) -> bool:
         """
@@ -71,7 +73,7 @@ class Button(IButtonModule):
         ##
         ##                       CODE
         ##
-        return self.robotic_arm.button_state
+        # return self.robotic_arm.button_state
 
     def shutdown(self) -> None:
         """

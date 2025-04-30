@@ -21,7 +21,7 @@ class UserInterface(IUserInterface):
         return self.lichess.create_game(fen)
 
     def apply_move(self, move: str) -> None:
-        self.lichess.make_move(move)
+        self.lichess.apply_move(move)
 
     def is_game_over(self, game_id: str) -> bool:
         return self.lichess.is_game_over(game_id)

@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, redirect, request, render_template, jsonify
 from api.UserInterface import UserInterface
 from engine.game_engine import GameEngine
 from dotenv import load_dotenv
@@ -34,8 +34,15 @@ def start_game():
     
     game_engine.initialize_game(mode=mode, color=color, difficulty=difficulty)
     
-    session_url = user_interface.create_game()
+    # session_url = user_interface.create_game()
+    # game_engine.start_game()
+    
+    session_url=game_engine.create_interface()
+    redirect(session_url, code=302)
     game_engine.start_game()
+    
+    
+    
 
     # TODO : redirection to the session_url
     
