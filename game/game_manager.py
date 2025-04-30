@@ -15,7 +15,7 @@ class GameManager:
 
     def start_game(self):
         # self.user_interface.create_game(self.camera.get_fen())
-        print("Starting game...", "mode:", self.mode, "color:", self.color, "difficulty:", self.difficulty)
+        print("Starting game...", "mode:", self.game.mode, "color:", self.game.color, "difficulty:", self.game.difficulty)
         if self.game.mode == GameMode.HUMAN_VS_BOT.value:
             self.start_human_vs_bot_game()
         elif self.game.mode == GameMode.BOT_VS_BOT.value:
@@ -54,7 +54,7 @@ class GameManager:
             self.engine.button.human_turn_finished()  # Block until the button is pressed
 
     def apply_human_move(self, move: str):
-        self.game.set_fen(self.camera.get_fen())
+        self.game.set_fen(self.engine.camera.get_fen())
         self.engine.user_interface.apply_move(move)
         if self.is_game_over():
             self.shutdown() # self.engine.shutdown() ??
