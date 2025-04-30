@@ -5,6 +5,7 @@ SERIAL_BAUDRATE = 921600
 
 # Listes de tous les id :
 ID_ACK_GENERAL                 = 0xC0 # Ack pour tous le reste
+ID_ACK_UNKNOW                  = 0xC1 # Ack pour les messages inconnus
 ID_REPEAT_REQUEST              = 0xD0
 
 ID_CMD_MOVE                    = 0xA0 # On envoit le mouvement x y z à faire en millimetres

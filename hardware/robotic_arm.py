@@ -65,7 +65,9 @@ class RoboticArm(IRoboticArmModule):
         
         match id:
             case id if id == ID_ACK_GENERAL:
-                print("Ack reçu")
+                print("Ack gen reçu")
+            case id if id == ID_ACK_UNKNOW:
+                print("Ack inconnu reçu")
             case id if id == ID_REPEAT_REQUEST:
                 print("Repeat request")
             case id if id == ID_ACK_CMD_MOVE:
@@ -126,25 +128,29 @@ class RoboticArm(IRoboticArmModule):
             
             
             start_pos.z = HAUTEUR_BRAS
-            self.sendMoveAndWait(start_pos)#On va au dessus de la piece
+            self.com.sendMove(start_pos)#On va au dessus de la piece
             
             start_pos.z = 0
-            self.sendMoveAndWait(start_pos)#On descend à la piece
+            self.com.sendMove(start_pos)#On descend à la piece
             
             self.com.sendGrabPiece(True)#On attrape la piece
             
             start_pos.z = HAUTEUR_BRAS
-            self.sendMoveAndWait(start_pos)#On remonte
+            self.com.sendMove(start_pos)#On remonte
             
-            self.sendMoveAndWait(end_pos)#On va à la case
+            self.com.sendMove(end_pos)#On va à la case
             
             end_pos.z = 0
-            self.sendMoveAndWait(end_pos)#On descend à la case
+            self.com.sendMove(end_pos)#On descend à la case
             
             self.com.sendGrabPiece(False)#On relache la piece
             
             end_pos.z = HAUTEUR_BRAS
-            self.sendMoveAndWait(end_pos)#On remonte
+            self.com.sendMove(end_pos)#On remonte
+            
+            while True :
+                if(self._rxManage() == ID_ACK_GENERAL):
+                    break
             
             self.chessboard_moves.move_finished = True#On dit qu'on a fini le move
             
