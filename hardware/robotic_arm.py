@@ -234,14 +234,14 @@ if __name__ == "__main__":
             robotic_arm.execute_move("a1f6")
         elif key == 'b':
             print("Key 'a' pressed")
-            robotic_arm.execute_move("f6b1")
+            robotic_arm.execute_move("f6j6")
         elif key == 'c':
-            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("a1h8")
+            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("a1d1")
             print(f"Move from {start_pos} to {end_pos}")
             robotic_arm.com.sendMove(start_pos)
             robotic_arm.com.sendMove(end_pos)
         elif key == 'd':
-            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("h8a8")
+            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("d1a1")
             print(f"Move from {start_pos} to {end_pos}")
             robotic_arm.com.sendMove(start_pos)
             robotic_arm.com.sendMove(end_pos)
