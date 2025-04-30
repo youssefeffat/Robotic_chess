@@ -79,3 +79,4 @@ if __name__ == "__main__":
     engine.stockfish.make_moves_from_current_position([best_move])
     print("Board state after best move:")
     print(engine.stockfish.get_board_visual())
+    print("FEN after best move:", engine.stockfish.get_fen_position())

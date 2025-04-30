@@ -33,7 +33,7 @@ class UserInterface(IUserInterface):
         self.lichess.shutdown()
 
 
-class LichessAPI(IUserInterface):
+class LichessAPI( IUserInterface):
     BASE_URL = "https://lichess.org"
     BOT1_USERNAME = os.getenv("LICHESS_BOT1_USERNAME")
     BOT2_USERNAME = os.getenv("LICHESS_BOT2_USERNAME")
@@ -64,6 +64,7 @@ class LichessAPI(IUserInterface):
         """
         self.fen=fen
         url = f"{self.BASE_URL}/api/challenge/{self.BOT2_USERNAME}"
+        print(f"url : {url}")
         data = {
         "level": 3,
         "clock.limit": 300,  
@@ -138,6 +139,7 @@ class LichessAPI(IUserInterface):
 
     def __accept_challenge(self,game_id):
         url = f"https://lichess.org/api/challenge/{game_id}/accept"
+        time.sleep(5)
         response = requests.post(url, headers=self.HEADERS_2)
         if response.status_code==200:
             print(f"challenge accepted!")
@@ -163,6 +165,12 @@ class LichessAPI(IUserInterface):
     
         return fen_chain[1]
 
+if __name__ == "__main__":
+    lichess = LichessAPI()
+    lichess.create_game("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq")
+    lichess.apply_move("e2e4")
+    print(lichess.is_game_over())
+    lichess.shutdown()
 
 # def get_game_outcome(game_id, api_token=None):
 #     headers = {'Authorization': f'Bearer {api_token}'} if api_token else {}

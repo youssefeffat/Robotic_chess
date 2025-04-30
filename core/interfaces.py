@@ -14,24 +14,24 @@ class Color(Enum):
 # Interface for the Game Engine
 class IGameEngine(ABC):
     @abstractmethod
-    def initialize_game(self, mode: GameMode, color: Color, difficulty: int, fen: str) -> None:
+    def initialize_game(self, mode: GameMode, color: Color, difficulty: int) -> None:
         """Initialize the game with the given parameters."""
         pass
 
-    @abstractmethod
-    def start_game(self) -> None:
-        """Start the game workflow."""
-        pass
+    # @abstractmethod
+    # def start_game(self) -> None:
+    #     """Start the game workflow."""
+    #     pass
 
-    @abstractmethod
-    def handle_human_move(self, move: str) -> None:
-        """Handle a human player's move."""
-        pass
+    # @abstractmethod
+    # def handle_human_move(self, move: str) -> None:
+    #     """Handle a human player's move."""
+    #     pass
 
-    @abstractmethod
-    def handle_bot_move(self) -> str:
-        """Calculate and execute the bot's move."""
-        pass
+    # @abstractmethod
+    # def handle_bot_move(self) -> str:
+    #     """Calculate and execute the bot's move."""
+    #    pass
 
     @abstractmethod
     def shutdown(self) -> None:

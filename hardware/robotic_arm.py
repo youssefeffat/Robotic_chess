@@ -25,8 +25,7 @@ class RoboticArm(IRoboticArmModule):
         # self.state_chessboard_manager = 0
         # self.last_move = "" #le dernier move fait par exemple "e2e4"
         
-        # self.button_state = False #On va l'utiliser pour savoir si le bouton est appuyé ou pas, si 1 c'est qu'il est appuyé, sinon c'est 0
-        time.sleep(1) 
+        self.button_state = False #On va l'utiliser pour savoir si le bouton est appuyé ou pas, si 1 c'est qu'il est appuyé, sinon c'est 0
 
     # def _start_serial(self, selected_port):
     #     if selected_port:
@@ -61,8 +60,8 @@ class RoboticArm(IRoboticArmModule):
         if(self.com.available() == False):
             return 0
         
-#         id = self.com.rxMsg[self.com.FIFO_lecture].id
-#         print("\nReceived message from id: ", idComEnText.get(id, "ID inconnu"))
+        id = self.com.rxMsg[self.com.FIFO_lecture].id
+        print("\nReceived message from id: ", idComEnText.get(id, "ID inconnu"))
         
         match id:
             case id if id == ID_ACK_GENERAL:
@@ -108,15 +107,15 @@ class RoboticArm(IRoboticArmModule):
         This function will handle the moves.
         """
         
-#         if(self.chessboard_moves.thereIsNewMoveToDo()):
-#             moves = self.chessboard_moves.getNextMove()
-#             if self.last_move == moves:
-#                 print("Move already done")
-#                 return
-#             self.last_move = moves
+        if(self.chessboard_moves.thereIsNewMoveToDo()):
+            moves = self.chessboard_moves.getNextMove()
+            if self.last_move == moves:
+                print("Move already done")
+                return
+            self.last_move = moves
             
-#             start_pos, end_pos = self.chessboard_moves.convertMovesToPositions(moves)
-#             print(f"Move from {start_pos} to {end_pos}")
+            start_pos, end_pos = self.chessboard_moves.convertMovesToPositions(moves)
+            print(f"Move from {start_pos} to {end_pos}")
             
             # self.com.sendEmpty(ID_SEND_CURRENT_POSITION)
             # while True :
@@ -132,25 +131,25 @@ class RoboticArm(IRoboticArmModule):
         start_pos.z = 0
         self.sendMoveAndWait(start_pos)#On descend à la piece
             
-#             self.com.sendGrabPiece(True)#On attrape la piece
-        
-        start_pos.z = HAUTEUR_BRAS
-        self.sendMoveAndWait(start_pos)#On remonte
-        
-        self.sendMoveAndWait(end_pos)#On va à la case
-        
-        end_pos.z = 0
-        self.sendMoveAndWait(end_pos)#On descend à la case
-        
-#             self.com.sendGrabPiece(False)#On relache la piece
-        
-        end_pos.z = HAUTEUR_BRAS
-        self.sendMoveAndWait(end_pos)#On remonte
-        
-        self.chessboard_moves.move_finished = True#On dit qu'on a fini le move
-        
-#             #Est ce qu'on fait autre chose aprés? Comme aller appuyer sur un bouton? A voir !!!!!!!!!!!!!!!!!!!!
-
+            self.com.sendGrabPiece(True)#On attrape la piece
+            
+            start_pos.z = HAUTEUR_BRAS
+            self.sendMoveAndWait(start_pos)#On remonte
+            
+            self.sendMoveAndWait(end_pos)#On va à la case
+            
+            end_pos.z = 0
+            self.sendMoveAndWait(end_pos)#On descend à la case
+            
+            self.com.sendGrabPiece(False)#On relache la piece
+            
+            end_pos.z = HAUTEUR_BRAS
+            self.sendMoveAndWait(end_pos)#On remonte
+            
+            self.chessboard_moves.move_finished = True#On dit qu'on a fini le move
+            
+            #Est ce qu'on fait autre chose aprés? Comme aller appuyer sur un bouton? A voir !!!!!!!!!!!!!!!!!!!!
+    
     def _loop(self):
         """
         Loop for the robotic arm module.
