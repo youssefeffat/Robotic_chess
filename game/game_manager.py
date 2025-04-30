@@ -91,13 +91,26 @@ class GameManager:
         for move in board1.legal_moves:
             temp_board=board1.copy()
             temp_board.push(move)
-            #print(f"temp_board fen : {temp_board.fen()}")
-            if temp_board.fen()== board2.fen():
+            temp_fen = temp_board.fen()[:-10]
+            print(f"temp_board fen : {temp_fen}")
+            if temp_fen== board2.fen()[:-10]:
+                print(f"Move: {board1.uci(move)}")
+                return move.uci()
+        fen3=fen1+" b"
+        fen4=fen2+" w"
+        board1= chess.Board(fen3)
+        board2= chess.Board(fen4)
+        for move in board1.legal_moves:
+            temp_board=board1.copy()
+            temp_board.push(move)
+            temp_fen = temp_board.fen()[:-8]
+            print(f"temp_board fen : {temp_fen}")
+            if temp_fen== board2.fen()[:-8]:
                 print(f"Move: {board1.uci(move)}")
                 return move.uci()
         
         print(f"Illegal move")
-        return None
+        return None# Liste des FEN pour chaque étape de la partie
         
     def is_game_over(self) -> bool:
         # Example implementation (replace with actual logic)
