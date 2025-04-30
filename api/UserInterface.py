@@ -64,6 +64,7 @@ class LichessAPI( IUserInterface):
         """
         self.fen=fen
         url = f"{self.BASE_URL}/api/challenge/{self.BOT2_USERNAME}"
+        print(f"url : {url}")
         data = {
         "level": 3,
         "clock.limit": 300,  
@@ -138,6 +139,7 @@ class LichessAPI( IUserInterface):
 
     def __accept_challenge(self,game_id):
         url = f"https://lichess.org/api/challenge/{game_id}/accept"
+        time.sleep(5)
         response = requests.post(url, headers=self.HEADERS_2)
         if response.status_code==200:
             print(f"challenge accepted!")

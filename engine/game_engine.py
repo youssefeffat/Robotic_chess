@@ -41,58 +41,58 @@ class GameEngine(IGameEngine):
         self.button.initialize_button()  
         # self.game.initialize_game(self, mode, color, difficulty, self.camera.get_fen())
 
-    def start_game(self):
-        # self.user_interface.create_game(self.camera.get_fen())
-        # self.game.start_game()
-        print("Starting game")
+    # def start_game(self):
+    #     # self.user_interface.create_game(self.camera.get_fen())
+    #     # self.game.start_game()
+    #     print("Starting game")
 
-    def handle_human_move(self, move: str):
-        # self.wait_for_human_move()
-        # self.apply_human_move(move)
-        print("Handling human move")
+    # def handle_human_move(self, move: str):
+    #     # self.wait_for_human_move()
+    #     # self.apply_human_move(move)
+    #     print("Handling human move")
 
-    def wait_for_human_move(self):
-        # ## TODO : try and catch to be added
-        # if self.button:
-        #     self.button.human_turn_finished()  # Block until the button is pressed
-        print("Waiting for human move")
+    # def wait_for_human_move(self):
+    #     # ## TODO : try and catch to be added
+    #     # if self.button:
+    #     #     self.button.human_turn_finished()  # Block until the button is pressed
+    #     print("Waiting for human move")
 
-    def apply_human_move(self, move: str):
-        # self.game.set_fen(self.camera.get_fen())
-        # self.user_interface.apply_move(move)
-        # if self.game.is_game_over():
-        #     self.shutdown()
-        # print(f"Human moved: {move}")
-        # print(f"Current game status: {self.game.get_game_state()}")*
-        print("Applying human move")
+    # def apply_human_move(self, move: str):
+    #     # self.game.set_fen(self.camera.get_fen())
+    #     # self.user_interface.apply_move(move)
+    #     # if self.game.is_game_over():
+    #     #     self.shutdown()
+    #     # print(f"Human moved: {move}")
+    #     # print(f"Current game status: {self.game.get_game_state()}")*
+    #     print("Applying human move")
 
-    def handle_bot_move(self) -> str:
-        # move = self.stockfish.calculate_best_move(self.game.get_fen())
-        # self.robot.execute_move(move)
-        # self.verify_robot_move(move)
-        # #TODO : case if the humain move is not valid (for camera)
-        # #TODO : case if the humain move is not valid
-        # self.user_interface.apply_move(move)
-        # if self.game.is_game_over():
-        #     self.shutdown()
-        # print(f"Bot moved: {move}")
-        print("Handling bot move")
+    # def handle_bot_move(self) -> str:
+    #     # move = self.stockfish.calculate_best_move(self.game.get_fen())
+    #     # self.robot.execute_move(move)
+    #     # self.verify_robot_move(move)
+    #     # #TODO : case if the humain move is not valid (for camera)
+    #     # #TODO : case if the humain move is not valid
+    #     # self.user_interface.apply_move(move)
+    #     # if self.game.is_game_over():
+    #     #     self.shutdown()
+    #     # print(f"Bot moved: {move}")
+    #     print("Handling bot move")
 
-    def verify_robot_move(self, move: str):
-        # expected_fen = self.fen_after_move(self.game.get_fen(), move)
-        # fen_after_robot = self.camera.get_fen()
-        # if not self.verify_move(expected_fen, fen_after_robot):
-        #     raise Exception("Invalid move detected")
-        # self.game.set_fen(fen_after_robot)
-        print("Verifying robot move")
+    # def verify_robot_move(self, move: str):
+    #     # expected_fen = self.fen_after_move(self.game.get_fen(), move)
+    #     # fen_after_robot = self.camera.get_fen()
+    #     # if not self.verify_move(expected_fen, fen_after_robot):
+    #     #     raise Exception("Invalid move detected")
+    #     # self.game.set_fen(fen_after_robot)
+    #     print("Verifying robot move")
 
-    def verify_move(self, expected_fen: str, actual_fen: str) -> bool:
-        # return expected_fen == actual_fen   
-        print("Verifying robot move")
+    # def verify_move(self, expected_fen: str, actual_fen: str) -> bool:
+    #     # return expected_fen == actual_fen   
+    #     print("Verifying robot move")
 
-    def fen_after_move(self, fen: str, move: str) -> str:
-        # return self.stockfish.get_fen_after_move(fen, move)
-        print("Getting fen after move")
+    # def fen_after_move(self, fen: str, move: str) -> str:
+    #     # return self.stockfish.get_fen_after_move(fen, move)
+    #     print("Getting fen after move")
 
     def shutdown(self):
         self.user_interface.shutdown()
