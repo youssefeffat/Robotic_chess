@@ -1,89 +1,93 @@
 from core.interfaces import IButtonModule
 import time
-from hardware.robotic_arm import *  # Adjusted the import path to match the project structure
 from hardware.robotic_arm import RoboticArm
+from pynput import keyboard
+
 
 class Button(IButtonModule):
-    def __init__(self, robotic_arm : RoboticArm):
+    def __init__(self, robotic_arm: RoboticArm):
         """
         Initialize the Button class.
-        This is a placeholder implementation.
-        The actual implementation will involve hardware interaction.
+        This is a placeholder implementation using the spacebar as a stand-in for a hardware button.
         """
-        self.is_initialized = False  
         self.robotic_arm = robotic_arm
+        self.is_initialized = False
+        self._button_pressed = False
+        self._listener = None
 
     def initialize_button(self) -> bool:
         """
         Initialize the button module.
-        This function sets up the button.
-        The state of the button is transferred by the electronic board.
-        Outputs:
-            - Returns True if initialization succeeds, False otherwise.
+        Sets up a keyboard listener that flips a flag when space is pressed.
+        Returns:
+            True if initialization succeeds, False otherwise.
         """
-        # print("Initializing button module...")
-        # try:
-        #     self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
-        #     self.is_initialized = True
-        #     print("Button module initialized successfully.")
-        #     return True
-        # except Exception as e:
-        #     print(f"Error initializing button module: {e}")
-        #     self.is_initialized = False
-        #     return False
-        time.sleep(5) 
+        try:
+            # Start keyboard listener
+            self._listener = keyboard.Listener(on_press=self._on_key_press)
+            self._listener.start()
+            self.is_initialized = True
+            return True
+        except Exception as e:
+            print(f"Failed to initialize button module: {e}")
+            return False
+
+    def _on_key_press(self, key):
+        try:
+            if key == keyboard.Key.space:
+                self._button_pressed = True
+        except AttributeError:
+            pass
 
     def human_turn_finished(self) -> bool:
-        # """
-        # Blocking function.
-        # Block until the human player's turn is finished or a hardware issue is detected.
-        # Expected Behavior:
-        #     - Wait for the button to be pressed.
-        #     - If the button is pressed, finish execution.
-        #     - If a hardware issue is detected, inform the user and return False.
+        """
+        Blocking call that waits until the 'button' (spacebar) is pressed,
+        or until a hardware issue is detected (simulated as listener failure),
+        or until a 5-minute timeout expires.
 
-        # Outputs:
-        #     - Returns True if the button was pressed successfully, False if a hardware issue occurs.
-        # """
-        # print("Waiting for the button press...")
-        
-        # timeout = 300  
-        # start_time = time.time()
-        # start_time_request = time.time()
-        # while not self.button_pressed():
-        #     # Check for timeout
-        #     if time.time() - start_time > timeout:
-        #         print("Error: Button press not detected within the timeout period. Possible hardware issue.")
-        #         return False
-        #     elif (time.time() - start_time_request) > 1:
-        #         start_time_request = time.time()
-        #         self.robotic_arm.com.sendEmpty(ID_CMD_BOUTTON_STATE) # Request button state
-        # print("Button pressed! Human turn finished.")
-        # return True
-        time.sleep(10)  # Simulate waiting for button press
+        Returns:
+            True if the button was pressed before timeout; False otherwise.
+        """
+        if not self.is_initialized:
+            raise RuntimeError("Button module not initialized. Call initialize_button() first.")
+
+        print("Waiting for the button press (5-minute timeout)...")
+        start_time = time.time()
+        timeout = 5 * 60  # 5 minutes in seconds
+
+        while True:
+            # Check for timeout
+            elapsed = time.time() - start_time
+            if elapsed >= timeout:
+                print("Timeout waiting for button press.")
+                return False
+
+            if not self._listener.is_alive():
+                print("Hardware issue detected: listener stopped unexpectedly.")
+                return False
+
+            if self.button_pressed():
+                print("Button pressed! Human turn finished.")
+                self._button_pressed = False
+                return True
+
+            time.sleep(0.1)
 
     def button_pressed(self) -> bool:
         """
-        Check if the button is pressed.
-        This function should be implemented based on the hardware setup.
+        Non-blocking check whether the button has been pressed.
 
-        Outputs:
-            - Returns True if the button is pressed, False otherwise.
+        Returns:
+            True if pressed since last check, False otherwise.
         """
-        ## LOGIC
-        ##
-        ##                       CODE
-        ##
-        # return self.robotic_arm.button_state
+        return self._button_pressed
 
     def shutdown(self) -> None:
         """
         Clean up resources and shut down the button module.
         """
-        if self.is_initialized:
-            ## LOGIC
-           ##
-           ##                       CODE
-           ##
-            print("Shutting down button module...")
-            self.is_initialized = False
+        if self._listener:
+            self._listener.stop()
+            self._listener = None
+        self.is_initialized = False
+        print("Button module shut down.")
