@@ -121,7 +121,7 @@ class GameManager:
     
     def next_free_tomb_square(self) -> str:
         num = len(self.tomb_squares)
-        square_name ="z"+str(num)
+        square_name ="i"+str(num)
         self.tomb_squares.append(square_name)
         return square_name
 
