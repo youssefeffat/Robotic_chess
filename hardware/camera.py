@@ -175,10 +175,28 @@ class Camera:
     def get_fen(cls) -> str:
         """
         Capture the current board state and return it as a FEN string,
-        allowing the user to recalc on error (press 'r') or accept (press 'v').
+        allowing the user to start capture (press 'c'), recalc on error (press 'r'),
+        accept (press 'v'), or enter manually (press 'o').
         Uses pynput to listen for keypresses.
         """
         while True:
+            # wait for user to press 'c' to start capture
+            print("Press 'c' to capture the chessboard state...")
+            key_pressed = {"char": None}
+
+            def on_start(key):
+                try:
+                    c = key.char.lower()
+                except AttributeError:
+                    return
+                if c == 'c':
+                    key_pressed["char"] = c
+                    return False
+
+            with keyboard.Listener(on_press=on_start) as listener:
+                listener.join()
+
+            # start capture
             print("Capturing chessboard state...")
             cap = cv2.VideoCapture(1)
             if not cap.isOpened():
@@ -186,28 +204,40 @@ class Camera:
             ret, frame = cap.read()
             cap.release()
 
-            # run your detector (with intermediate windows if you like)
+            # run your detector
             detector = cls(debug=True)
             fen = detector.generate_fen_from_frame(frame, show_intermediate=False)
 
             # show result and prompt
             print(f"Generated FEN: {fen}")
             key_pressed = {"char": None}
+
             def on_press(key):
                 try:
                     c = key.char.lower()
                 except AttributeError:
                     return
-                if c in ("r", "v"):
+                if c in ("r", "v", "o"):
                     key_pressed["char"] = c
                     return False
 
             with keyboard.Listener(on_press=on_press) as listener:
                 listener.join()
             choice = key_pressed["char"]
+
             if choice == "v":
+                # User accepts the generated FEN
+                cv2.destroyAllWindows()
                 return fen
+
+            elif choice == "o":
+                # User opts to enter FEN manually
+                cv2.destroyAllWindows()
+                manual_fen = input("Please enter the FEN string manually: ").strip()
+                return manual_fen
+
             elif choice == "r":
+                # Retry capturing
                 cv2.destroyAllWindows()
                 continue
     def shutdown(self) -> None:
