@@ -234,7 +234,7 @@ if __name__ == "__main__":
     # Shutdown the robotic arm
     # robotic_arm.shutdown()
     while 1:
-        key = input("")
+        key = input("Press a key (a, b, c, d, e, f, h, p, t): ")
         if key == 'a':
             print("Key 'a' pressed")
             robotic_arm.execute_move("a1f6")
