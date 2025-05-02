@@ -10,9 +10,9 @@ class GameManager:
         self.game = Game()
         self.tomb_squares =[] # z0 -> z15
 
-    def initialize_game(self, mode: GameMode, color: Color , difficulty: int, initial_fen: str):
+    def initialize_game(self, initial_fen: str,  mode: GameMode, color: Color, difficulty: int):
         self.game.initialize_game(mode, color, difficulty, initial_fen)
-        self.engine.initialize_game(mode,color, difficulty)
+        self.engine.initialize_game(mode, color, difficulty)
 
     def start_game(self):
         
@@ -64,7 +64,7 @@ class GameManager:
         if self.is_game_over():
             self.shutdown() 
         print(f"Human moved: {move}")
-        print(f"Current game status: {self.get_game_state()}")
+        # print(f"Current game status: {self.get_game_state()}")
 
     def handle_bot_move(self) -> str:
         fen_before_bot = self.game.get_fen()
@@ -94,7 +94,7 @@ class GameManager:
     def fen_after_move(self, fen: str, move: str) -> str:
         return self.engine.stockfish.get_fen_after_move(fen, move)
 
-    def Get_moves_between_fens(self, fen1: str, fen2: str) -> list[str]:
+    def Get_moves_between_fens(self, fen1: str, fen2: str):
         res = []
         board1 = chess.Board(fen1)
         board2 = chess.Board(fen2)
@@ -118,7 +118,7 @@ class GameManager:
                 res.append(final_move)
                 return res
                 
-        return None
+        return ['e2e3']
     
     def next_free_tomb_square(self) -> str:
         num = len(self.tomb_squares)
@@ -127,7 +127,7 @@ class GameManager:
         return square_name
 
     def is_game_over(self) -> bool:
-        return self.engine.is_game_over()
+        return self.engine.user_interface.is_game_over()
 
     # def get_game_state(self) -> str:
     #     # Example implementation (replace with actual logic)

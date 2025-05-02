@@ -14,7 +14,7 @@ class Color(Enum):
 # Interface for the Game Engine
 class IGameEngine(ABC):
     @abstractmethod
-    def initialize_game(self, mode: GameMode, color: Color, difficulty: int, initial_fen) -> None:
+    def initialize_game(self, initial_fen: str,  mode: GameMode, color: Color, difficulty: int) -> None:
         """Initialize the game with the given parameters."""
         pass
 

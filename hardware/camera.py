@@ -9,7 +9,7 @@ from core.interfaces import ICameraModule
 
 class Camera:
     def __init__(self,
-                 board_size: int = 550,
+                 board_size: int = 900,
                  coverage_threshold: float = 0.02,
                  border_cm: float = 2,
                  board_physical_size_cm: float = 40.0,

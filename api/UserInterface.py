@@ -23,8 +23,8 @@ class UserInterface(IUserInterface):
     def apply_move(self, move: str) -> None:
         self.lichess.apply_move(move)
 
-    def is_game_over(self, game_id: str) -> bool:
-        return self.lichess.is_game_over(game_id)
+    def is_game_over(self) -> bool:
+        return self.lichess.is_game_over()
     
     def shutdown(self) -> None:
         """
@@ -33,7 +33,7 @@ class UserInterface(IUserInterface):
         self.lichess.shutdown()
 
 
-class LichessAPI( IUserInterface):
+class LichessAPI(IUserInterface):
     BASE_URL = "https://lichess.org"
     BOT1_USERNAME = os.getenv("LICHESS_BOT1_USERNAME")
     BOT2_USERNAME = os.getenv("LICHESS_BOT2_USERNAME")

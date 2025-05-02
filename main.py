@@ -45,7 +45,7 @@ def start_game():
 
         # Generate session URL
         inital_fen = game_manager.engine.camera.get_fen()
-        game_manager.initialize_game(mode=mode, color=color, difficulty=difficulty, inital_fen=inital_fen)
+        game_manager.initialize_game(inital_fen, mode=mode, color=color, difficulty=difficulty)
         
         game_manager.game.set_fen(inital_fen)
         session_url = user_interface.create_game(inital_fen+" "+turn)
