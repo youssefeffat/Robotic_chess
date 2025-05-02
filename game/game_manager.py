@@ -58,8 +58,9 @@ class GameManager:
         fen_before_humain = self.game.get_fen()
         fen_after_human = self.engine.camera.get_fen()
         self.game.set_fen(fen_after_human)
-        moves = self.Get_moves_between_fens(fen_before_humain, fen_after_human)
-        move = moves[1] if len(moves) > 1 else moves[0]
+        move = self.Get_moves_between_fens(fen_before_humain, fen_after_human)
+        print('moves :',move)
+        # move = moves[1] if len(moves) > 1 else moves[0]
         self.engine.user_interface.apply_move(move)
         if self.is_game_over():
             self.shutdown() 
@@ -71,9 +72,12 @@ class GameManager:
         move = self.engine.stockfish.calculate_best_move(fen_before_bot)
         print (f"Stockfish Bot move: {move}")
         fen_after_bot = self.engine.stockfish.get_fen_after_move(fen_before_bot, move)
-        moves = self.Get_moves_between_fens(fen_before_bot, fen_after_bot)
-        for m in moves:
-            self.engine.robot.execute_move(m)
+        move = self.Get_moves_between_fens(fen_before_bot, fen_after_bot)
+        print('move:', move)
+        # for m in moves:
+        #     self.engine.robot.execute_move(m)
+        # self.verify_robot_move(fen_after_bot)
+        self.engine.robot.execute_move(move)
         self.verify_robot_move(fen_after_bot)
         #TODO : case if the humain move is not valid (for camera)
         #TODO : case if the humain move is not valid
@@ -95,31 +99,19 @@ class GameManager:
         return self.engine.stockfish.get_fen_after_move(fen, move)
 
     def Get_moves_between_fens(self, fen1: str, fen2: str):
-        res = []
         board1 = chess.Board(fen1)
         board2 = chess.Board(fen2)
 
-        # Extract only the piece positions from both FENs
-        target_position = fen2.split()[0]  # First part of fen2
-
-        for move in board1.legal_moves:
+        for move1 in board1.legal_moves:
             temp_board = board1.copy()
-            temp_board.push(move)
-            current_position = temp_board.fen().split()[0]  # First part of temp_board's FEN
-            if current_position == target_position:
-                captured_piece = board1.piece_at(move.to_square)
-                is_capture = captured_piece is not None
-
-                print(f"Move: {move.uci()} (Capture: {is_capture})")
-                final_move = move.uci()
-                if is_capture:
-                    graveyard_move = final_move[-2:]+ self.next_free_tomb_square()
-                    res.append(graveyard_move)
-                res.append(final_move)
-                return res
-                
-        return ['e2e3']
-    
+            temp_board.push(move1)
+            if temp_board.board_fen().split()[0] == fen2.split()[0]:
+                return move1
+        for move2 in board2.legal_moves:
+            temp_board = board2.copy()
+            temp_board.push(move2)
+            if temp_board.board_fen().split()[0] == fen1.split()[0]:
+                return move2
     def next_free_tomb_square(self) -> str:
         num = len(self.tomb_squares)
         square_name ="i"+str(num)

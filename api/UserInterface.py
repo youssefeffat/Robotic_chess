@@ -110,7 +110,7 @@ class LichessAPI(IUserInterface):
         response = requests.post(url, headers=headers_player)
         if response.status_code == 200:
             print(f" Move '{uci_move}' played successfully!")
-            self.fen=self.__get_fen_chain(uci_move, current_fen)
+            # self.fen=self.__get_fen_chain(uci_move, current_fen)
         else:
             print(f" Failed to make move: {response.text}")
         
@@ -157,16 +157,16 @@ class LichessAPI(IUserInterface):
     #     player_turn = fen_parts[1]
     #     return player_turn
     
-    def __get_fen_chain(self,move_str, initial_fen):
-        
-        board = chess.Board(initial_fen)
-        fen_chain = [board.fen()]  
-    
-        move = chess.Move.from_uci(move_str)
-        board.push(move)
-        fen_chain.append(board.fen())
-    
-        return fen_chain[1]
+    # def __get_fen_chain(self,move_str, initial_fen):
+    #
+    #     board = chess.Board(initial_fen)
+    #     fen_chain = [board.fen()]
+    #
+    #     move = chess.Move.from_uci(move_str)
+    #     board.push(move)
+    #     fen_chain.append(board.fen())
+    #
+    #     return fen_chain[1]
 
 if __name__ == "__main__":
     lichess = LichessAPI()
