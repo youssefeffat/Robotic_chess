@@ -56,6 +56,7 @@ class LichessAPI( IUserInterface):
     def __init__(self) -> None: 
         self.game_id=None
         self.fen=None
+        self.turn="w"
     
     def create_game(self,fen) -> str:
         """
@@ -99,11 +100,13 @@ class LichessAPI( IUserInterface):
         """
         current_fen=self.fen
         url = f"{self.BASE_URL}/api/board/game/{self.game_id}/move/{uci_move}"
-        player=self.__get_player_turn_from_fen(current_fen)
+        player=self.turn
         if player=="b":
             headers_player=self.HEADERS_1
+            self.turn="w"
         else:
             headers_player=self.HEADERS_2
+            self.turn="b"
         response = requests.post(url, headers=headers_player)
         if response.status_code == 200:
             print(f" Move '{uci_move}' played successfully!")
@@ -149,10 +152,10 @@ class LichessAPI( IUserInterface):
             return False
         
 
-    def __get_player_turn_from_fen(self,fen):
-        fen_parts=fen.split()
-        player_turn = fen_parts[1]
-        return player_turn
+    # def __get_player_turn_from_fen(self,fen):
+    #     fen_parts=fen.split()
+    #     player_turn = fen_parts[1]
+    #     return player_turn
     
     def __get_fen_chain(self,move_str, initial_fen):
         

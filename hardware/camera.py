@@ -1,6 +1,7 @@
 from core.interfaces import ICameraModule
 import cv2 
 import numpy as np
+from pynput import keyboard
 import os
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -8,7 +9,7 @@ from core.interfaces import ICameraModule
 
 class Camera:
     def __init__(self,
-                 board_size: int = 400,
+                 board_size: int = 550,
                  coverage_threshold: float = 0.02,
                  border_cm: float = 2,
                  board_physical_size_cm: float = 40.0,
@@ -173,19 +174,42 @@ class Camera:
     @classmethod
     def get_fen(cls) -> str:
         """
-        Capture the current board state and return it as a FEN string.
+        Capture the current board state and return it as a FEN string,
+        allowing the user to recalc on error (press 'r') or accept (press 'v').
+        Uses pynput to listen for keypresses.
         """
-        print("Capturing chessboard state...")
-        cap = cv2.VideoCapture(1)
-        if not cap.isOpened():
-            exit("Error: Could not open camera.")
-        ret, frame = cap.read()
-        cap.release()
-        cv2.destroyAllWindows()
-        # on crée un détecteur avec debug à False (ou True si nécessaire)
-        detector = cls(debug=True)
-        return detector.generate_fen_from_frame(frame, show_intermediate=True)
+        while True:
+            print("Capturing chessboard state...")
+            cap = cv2.VideoCapture(1)
+            if not cap.isOpened():
+                exit("Error: Could not open camera.")
+            ret, frame = cap.read()
+            cap.release()
 
+            # run your detector (with intermediate windows if you like)
+            detector = cls(debug=True)
+            fen = detector.generate_fen_from_frame(frame, show_intermediate=False)
+
+            # show result and prompt
+            print(f"Generated FEN: {fen}")
+            key_pressed = {"char": None}
+            def on_press(key):
+                try:
+                    c = key.char.lower()
+                except AttributeError:
+                    return
+                if c in ("r", "v"):
+                    key_pressed["char"] = c
+                    return False
+
+            with keyboard.Listener(on_press=on_press) as listener:
+                listener.join()
+            choice = key_pressed["char"]
+            if choice == "v":
+                return fen
+            elif choice == "r":
+                cv2.destroyAllWindows()
+                continue
     def shutdown(self) -> None:
         """
         Close the camera connection.
