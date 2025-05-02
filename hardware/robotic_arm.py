@@ -12,29 +12,29 @@ class RoboticArm(IRoboticArmModule):
         This is a placeholder implementation.
         The actual implementation will involve controlling the robotic arm hardware.
         """
-        # # self.is_initialized = False 
+        self.is_initialized = False 
 
-        # self.com = SerialCommunication()
+        self.com = SerialCommunication()
 
-        # # self.loop_thread = None  # Thread for the loop function
-        # # self.running = False     # Flag to control the loop execution
+        self.loop_thread = None  # Thread for the loop function
+        self.running = False     # Flag to control the loop execution
         
-        # # self.current_pos = Position(0,0,0)
+        self.current_pos = Position(0,0,0)
         
-        # self.chessboard_moves = ChessboardMoves()
-        # self.state_chessboard_manager = 0
-        # self.last_move = "" #le dernier move fait par exemple "e2e4"
+        self.chessboard_moves = ChessboardMoves()
+        self.state_chessboard_manager = 0
+        self.last_move = "" #le dernier move fait par exemple "e2e4"
         
         self.button_state = False #On va l'utiliser pour savoir si le bouton est appuyé ou pas, si 1 c'est qu'il est appuyé, sinon c'est 0
 
-    # def _start_serial(self, selected_port):
-    #     if selected_port:
-    #         try:
-    #             self.com = SerialCommunication(selected_port, SERIAL_BAUDRATE)
-    #             self.com.start()
-    #             print("Starting serial self.com ", selected_port)
-    #         except serial.SerialException as e:
-    #             print("Serial Error", f"Failed to open port {selected_port}: {e}")
+    def _start_serial(self, selected_port):
+        if selected_port:
+            try:
+                self.com = SerialCommunication(selected_port, SERIAL_BAUDRATE)
+                self.com.start()
+                print("Starting serial self.com ", selected_port)
+            except serial.SerialException as e:
+                print("Serial Error", f"Failed to open port {selected_port}: {e}")
                 
     def _start_loop(self):
         """
@@ -65,7 +65,9 @@ class RoboticArm(IRoboticArmModule):
         
         match id:
             case id if id == ID_ACK_GENERAL:
-                print("Ack reçu")
+                print("Ack gen reçu")
+            case id if id == ID_ACK_UNKNOW:
+                print("Ack inconnu reçu")
             case id if id == ID_REPEAT_REQUEST:
                 print("Repeat request")
             case id if id == ID_ACK_CMD_MOVE:
@@ -125,30 +127,34 @@ class RoboticArm(IRoboticArmModule):
             # self.sendMoveAndWait(self.current_pos)#On s'assure d'etre deja en l'air avant de bouger
             
             
-        start_pos.z = HAUTEUR_BRAS
-        self.sendMoveAndWait(start_pos)#On va au dessus de la piece
-        
-        start_pos.z = 0
-        self.sendMoveAndWait(start_pos)#On descend à la piece
+            start_pos.z = HAUTEUR_BRAS
+            self.com.sendMove(start_pos)#On va au dessus de la piece
             
-        self.com.sendGrabPiece(True)#On attrape la piece
-        
-        start_pos.z = HAUTEUR_BRAS
-        self.sendMoveAndWait(start_pos)#On remonte
-        
-        self.sendMoveAndWait(end_pos)#On va à la case
-        
-        end_pos.z = 0
-        self.sendMoveAndWait(end_pos)#On descend à la case
-        
-        self.com.sendGrabPiece(False)#On relache la piece
-        
-        end_pos.z = HAUTEUR_BRAS
-        self.sendMoveAndWait(end_pos)#On remonte
-        
-        self.chessboard_moves.move_finished = True#On dit qu'on a fini le move
-        
-        #Est ce qu'on fait autre chose aprés? Comme aller appuyer sur un bouton? A voir !!!!!!!!!!!!!!!!!!!!
+            start_pos.z = 0
+            self.com.sendMove(start_pos)#On descend à la piece
+            
+            self.com.sendGrabPiece(True)#On attrape la piece
+            
+            start_pos.z = HAUTEUR_BRAS
+            self.com.sendMove(start_pos)#On remonte
+            
+            self.com.sendMove(end_pos)#On va à la case
+            
+            end_pos.z = 0
+            self.com.sendMove(end_pos)#On descend à la case
+            
+            self.com.sendGrabPiece(False)#On relache la piece
+            
+            end_pos.z = HAUTEUR_BRAS
+            self.com.sendMove(end_pos)#On remonte
+            
+            while True :
+                if(self._rxManage() == ID_ACK_GENERAL):
+                    break
+            
+            self.chessboard_moves.move_finished = True#On dit qu'on a fini le move
+            
+            #Est ce qu'on fait autre chose aprés? Comme aller appuyer sur un bouton? A voir !!!!!!!!!!!!!!!!!!!!
     
     def _loop(self):
         """
@@ -168,13 +174,10 @@ class RoboticArm(IRoboticArmModule):
         Initialize the robotic arm module.
         This function sets up the robotic arm hardware (e.g., motors, servos).
         """
-        # self._start_serial(afficherPortDisponible()) # Start the serial communication
-        # print("Robotic arm initialized.")
-        # self._start_loop()  # Start the loop thread
-        # self.is_initialized = True
-        time.sleep(1) 
-
-
+        self._start_serial(afficherPortDisponible()) # Start the serial communication
+        print("Robotic arm initialized.")
+        self._start_loop()  # Start the loop thread
+        self.is_initialized = True
 
     def execute_move(self, move: str) -> None:
         """
@@ -189,24 +192,20 @@ class RoboticArm(IRoboticArmModule):
         Outputs:
             - None (executes the move physically).
         """
-
-        
-        # if not self.is_initialized:
-        #     raise RuntimeError("Robotic arm is not initialized. Call initialize_robot() first.")
-        # print(f"Executing move: {move}")
-        # self.chessboard_moves.addMoves(move)
-        # self.chessboard_moves.waitForMoveToFinish() # Bloque jusqu'à ce que le move soit fini
-        # print(f"Move {move} executed.")
-        time.sleep(5) 
+        if not self.is_initialized:
+            raise RuntimeError("Robotic arm is not initialized. Call initialize_robot() first.")
+        print(f"Executing move: {move}")
+        self.chessboard_moves.addMoves(move)
+        self.chessboard_moves.waitForMoveToFinish() # Bloque jusqu'à ce que le move soit fini
+        print(f"Move {move} executed.")
 
     def shutdown(self) -> None:
         """
         Shut down the robotic arm and clean up resources.
         """
-        # self._stop_loop()  # Stop the loop thread
-        # print("Robotic arm shut down.")
-        # self.is_initialized = False
-        time.sleep(1) 
+        self._stop_loop()  # Stop the loop thread
+        print("Robotic arm shut down.")
+        self.is_initialized = False
     
     def get_current_position(self) -> str:
         """
@@ -235,20 +234,20 @@ if __name__ == "__main__":
     # Shutdown the robotic arm
     # robotic_arm.shutdown()
     while 1:
-        key = input("")
+        key = input("Press a key (a, b, c, d, e, f, h, p, t): ")
         if key == 'a':
             print("Key 'a' pressed")
             robotic_arm.execute_move("a1f6")
         elif key == 'b':
             print("Key 'a' pressed")
-            robotic_arm.execute_move("f6b1")
+            robotic_arm.execute_move("f6j6")
         elif key == 'c':
-            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("a1h8")
+            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("a1d1")
             print(f"Move from {start_pos} to {end_pos}")
             robotic_arm.com.sendMove(start_pos)
             robotic_arm.com.sendMove(end_pos)
         elif key == 'd':
-            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("h8a8")
+            start_pos, end_pos = robotic_arm.chessboard_moves.convertMovesToPositions("d1a1")
             print(f"Move from {start_pos} to {end_pos}")
             robotic_arm.com.sendMove(start_pos)
             robotic_arm.com.sendMove(end_pos)

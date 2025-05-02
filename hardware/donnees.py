@@ -5,6 +5,7 @@ SERIAL_BAUDRATE = 921600
 
 # Listes de tous les id :
 ID_ACK_GENERAL                 = 0xC0 # Ack pour tous le reste
+ID_ACK_UNKNOW                  = 0xC1 # Ack pour les messages inconnus
 ID_REPEAT_REQUEST              = 0xD0
 
 ID_CMD_MOVE                    = 0xA0 # On envoit le mouvement x y z à faire en millimetres
@@ -82,7 +83,7 @@ class Position():
         return f"Position(x: {self.x}, y: {self.y}, z: {self.z})"
 
 TAILLE_CARREAU = 0.036 #En metres
-HAUTEUR_BRAS = 0.05 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+HAUTEUR_BRAS = 0.13 #En metres, hauteur du bras à laquelle descendre pour prendre une pièce, en z, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 class ChessboardMoves():
     def __init__(self):
@@ -90,7 +91,7 @@ class ChessboardMoves():
         self.cursor_move_write = 0
         self.cursor_move_read = 0
         
-        self.posA1 = Position(TAILLE_CARREAU, TAILLE_CARREAU, 0) #Position de A1, utilisé comme référence, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.posA1 = Position(0.03, 0.025, 0) #Position de A1, utilisé comme référence, à mesurer!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         self.move_finished = False #On va l'utiliser pour savoir
 
@@ -125,7 +126,7 @@ class ChessboardMoves():
                 raise ValueError("Invalid chess notation. Expected format: 'e2'")
             column = notation[0].lower()
             row = notation[1]
-            if column < 'a' or column > 'h' or row < '1' or row > '8':
+            if column < 'a' :#or row < '1' or column > 'h' or row > '8':
                 raise ValueError("Invalid chess notation. Out of bounds.")
             x = self.posA1.x + (ord(column) - ord('a')) * TAILLE_CARREAU
             y = self.posA1.y + (int(row) - 1) * TAILLE_CARREAU
