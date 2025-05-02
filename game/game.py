@@ -2,7 +2,7 @@ from core.enums import GameMode, Color
 # from engine.game_engine import GameEngine  # Import GameEngine from the appropriate module
 
 class Game:
-    default_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    default_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
     default_difficulty = 10
     default_mode = GameMode.HUMAN_VS_BOT.value
     default_color = Color.WHITE.value

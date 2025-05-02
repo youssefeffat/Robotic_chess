@@ -75,7 +75,8 @@ class StockfishEngine():
         self.stockfish.set_fen_position(fen)
         self.stockfish.make_moves_from_current_position([move])
         # Get the FEN string after making the move
-        return self.stockfish.get_fen_position()
+        fen = self.stockfish.get_fen_position()
+        return fen
     
     
 if __name__ == "__main__":
@@ -83,14 +84,15 @@ if __name__ == "__main__":
     engine.initialize_engine(difficulty=5)
     
     # Initial board state
-    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    # fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    fen = "rn1qkbnr/ppp2ppp/3p4/4p3/3PP1b1/P1N5/1PP2PPP/R1BQKBNR b KQkq - 0 1"
     print("Initial board state:")
     print(engine.stockfish.get_board_visual(fen))
     
     # Make a move and display the board
     best_move = engine.calculate_best_move(fen)
     print(f"Best move: {best_move}")
-    engine.stockfish.make_moves_from_current_position([best_move])
+    engine.stockfish.make_moves_from_current_position(['e4d5'])
     print("Board state after best move:")
     print(engine.stockfish.get_board_visual())
     print("FEN after best move:", engine.stockfish.get_fen_position())

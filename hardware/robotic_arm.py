@@ -174,6 +174,8 @@ class RoboticArm(IRoboticArmModule):
         # self.is_initialized = True
         time.sleep(1) 
 
+
+
     def execute_move(self, move: str) -> None:
         """
         Execute the given move on the physical chessboard.
@@ -187,6 +189,8 @@ class RoboticArm(IRoboticArmModule):
         Outputs:
             - None (executes the move physically).
         """
+
+        
         # if not self.is_initialized:
         #     raise RuntimeError("Robotic arm is not initialized. Call initialize_robot() first.")
         # print(f"Executing move: {move}")

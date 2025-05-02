@@ -34,13 +34,20 @@ def start_game():
         if not (1 <= difficulty <= 20):
             return jsonify({"error": "Difficulty must be 1-20"}), 400
 
+        if color == 'white':
+            turn = 'w'
+        else:
+            turn = 'b'
+            
         # Initialize game components
         user_interface = UserInterface()
         game_manager = GameManager(user_interface)
 
         # Generate session URL
         game_manager.initialize_game(mode=mode, color=color, difficulty=difficulty)
-        session_url = user_interface.create_game("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq")
+        inital_fen = game_manager.engine.camera.get_fen()
+        game_manager.game.set_fen(inital_fen)
+        session_url = user_interface.create_game(inital_fen+" "+turn)
 
         # Start game in a background thread
         threading.Thread(target=game_manager.start_game).start()
