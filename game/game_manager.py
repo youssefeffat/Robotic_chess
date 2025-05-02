@@ -10,8 +10,8 @@ class GameManager:
         self.game = Game()
         self.tomb_squares =[] # z0 -> z15
 
-    def initialize_game(self, mode: GameMode, color: Color , difficulty: int ):
-        self.game.initialize_game(mode, color, difficulty, self.engine.camera.get_fen())
+    def initialize_game(self, mode: GameMode, color: Color , difficulty: int, initial_fen: str):
+        self.game.initialize_game(mode, color, difficulty, initial_fen)
         self.engine.initialize_game(mode,color, difficulty)
 
     def start_game(self):
@@ -69,6 +69,7 @@ class GameManager:
     def handle_bot_move(self) -> str:
         fen_before_bot = self.game.get_fen()
         move = self.engine.stockfish.calculate_best_move(fen_before_bot)
+        print (f"Stockfish Bot move: {move}")
         fen_after_bot = self.engine.stockfish.get_fen_after_move(fen_before_bot, move)
         moves = self.Get_moves_between_fens(fen_before_bot, fen_after_bot)
         for m in moves:

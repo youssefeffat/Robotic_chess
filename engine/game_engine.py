@@ -30,16 +30,16 @@ class GameEngine(IGameEngine):
         self.stockfish = StockfishEngine()
         self.camera = Camera()
         self.robot = RoboticArm()
-        self.game = Game()
+        # self.game = Game()
         self.button = Button(self.robot)  
 
-    def initialize_game(self, mode: GameMode, color: Color, difficulty: int):
+    def initialize_game(self, mode: GameMode, color: Color, difficulty: int, initial_fen: str):
         print("Initializing game engine... mode:", mode, "color:", color, "difficulty:", difficulty)
         self.stockfish.initialize_engine(difficulty)
         self.camera.initialize_camera()
         self.robot.initialize_robot()
         self.button.initialize_button()  
-        self.game.initialize_game(mode, color, difficulty, self.camera.get_fen())
+        # self.game.initialize_game(mode, color, difficulty, initial_fen)
 
     # def start_game(self):
     #     # self.user_interface.create_game(self.camera.get_fen())
